@@ -7,26 +7,25 @@
 
 **堆**  
 用于存放生成的对象和数组,是线程共享区域,GC的主要区域  
-由于GC采用**分代收集算法**,所以堆被大致分为**新生代和老年代**  
+由于GC采用**分代收集算法**,所以堆大致被分为**新生代和老年代**  
 
-新生代:用于存放刚创建的对象,细分为eden和survivor(from和to),一般默认分配空间为8:2(8:1:1),默认分配可以通过启动参数修改(-XX:SurvivorRatio).
-由于JVM每次都会使用eden和survivor中的一块区域来服务,所以一般实际可用率为90%,一般GC会频繁光顾新生代,多次没有被回收的对象则进入老年代。采用复制算法进行回收。 
+新生代:用于存放刚创建的对象,细分为eden和survivor(from和to),一般默认分配空间为8:2(8:1:1),默认分配可以通过启动参数修改(-XX:SurvivorRatio)。
+由于JVM每次都会使用eden和survivor中的一块区域来服务,所以一般实际可用率为90%,一般GC会频繁光顾新生代,多次没有被回收的对象则进入老年代。采用复制算法进行回收。 
 
-年老代:用于存放存活率相对较高的对象。采用标记-清除算法进行回收。    
+年老代:用于存放存活率相对较高的对象。采用标记-清除算法进行回收。    
 1.大对象直接进入老年代、  
-2.(固定计算判断)新生代中每次回收都会对存活的对象进行标记,默认标记15次后进入老年代、  
-3.(动态判断)当survivor中某一计数阶段的对象超过半数,则大于该计数阶段的对象进入老年代
+2.(固定计算判断)新生代中每次回收都会对存活的对象进行标记,默认标记15次后进入老年代、  
+3.(动态判断)当survivor中某一计数阶段的对象超过半数,则大于该计数阶段的对象进入老年代
 
 **方法区**
 用于存放类的信息、常量、静态变量、编译后的代码。   
 当方法区无法满足内存分配时,抛出OutOfMemoryError  
 
 方法区的回收:  
-1.没有任何对象引用的常量和引用符号(编译后用于描述类、接口、方法、字段名),当内存回收时,被清除。   
+1.没有任何对象引用的常量和引用符号(编译后用于描述类、接口、方法、字段名),当内存回收时,被清除。   
 2.该类所有的实例都已经被回收,也就是java堆中不存在该类的任何实例  
 3.加载该类的ClassLoader已经被回收。  
-4.该类对应的java.lang.Class对象没有任何地方被引用,无法在任何地方通过反射访问该类的方法。    
-    
+4.该类对应的java.lang.Class对象没有任何地方被引用,无法在任何地方通过反射访问该类的方法。      
 
 **虚拟机栈**  
 虚拟机栈(JVM栈)是描述java方法执行的内存模型,是线程私有的。  
@@ -45,7 +44,7 @@
 本地方法栈和JVM栈是相似的,只不过服务对象不一样。
 
 **程序计数器**   
-java是支持多线程的,线程之间就要根据时间片轮询抢夺CPU时间资源,当CPU执行一个时间片时候切换到其他线程之后,为了下一次CPU执行时能回到正确的执行位置,所以每一个线程都会创建一个程序计数器用于记录正在执行的字节码地址。  
+java是支持多线程的,线程之间就要根据时间片轮询抢夺CPU时间资源,当CPU执行一个时间片时候切换到其他线程之后,为了下一次CPU执行时能回到正确的执行位置,所以每一个线程都会创建一个程序计数器用于记录正在执行的字节码地址。  
 
 ![内存模型图](images/image01.jpg)
 
@@ -1904,7 +1903,7 @@ public static void main(String[] args)throws Exception{
 
 ### 2.12 java 泛型    
 &emsp;&emsp;实质类型通配    
-&emsp;&emsp;继承泛型类要么保持泛型化(子类必须有父类通配),要么不在泛型化。   
+&emsp;&emsp;继承泛型类要么保持泛型化(子类必须有父类通配),要么不在泛型化。   
 &emsp;&emsp;泛型编译后类型为Object即类型擦除  
 &emsp;&emsp;泛型限定范围使用extends(<T extends Map>)   
 &emsp;&emsp;由于被编译成Object,但是在实例化的成对应类型,如果在运行中想要获取实例化类型可以使用反射      
@@ -1912,8 +1911,8 @@ public static void main(String[] args)throws Exception{
 ### 2.13 java 异常    
 &emsp;&emsp;java异常一般分为2大种{Error,Exception},其中Throwable类是异常的超类。       
 &emsp;&emsp;Error:程序本身无法捕获和处理。例如:OutOfMemoryError、StackOverflowError   
-&emsp;&emsp;Exception:一般分为CheckedException和RuntimeException    
-&emsp;&emsp;&emsp;&emsp;CheckedException:编写代码时必须使用try、catch否则无法编译通过。例如:使用反射的时候ClassNotFoundException、NoSuchMetodException和读取文件的时候IOException    
+&emsp;&emsp;Exception:一般分为CheckedException和RuntimeException    
+&emsp;&emsp;&emsp;&emsp;CheckedException:编写代码时必须使用try、catch否则无法编译通过。例如:使用反射的时候ClassNotFoundException、NoSuchMetodException和读取文件的时候IOException    
 &emsp;&emsp;&emsp;&emsp;RuntimeException:程序运行中出现的错误,一般编译时IDE无法检查。例如:IndexOutOfBoundsException、NullPointerException、ClassCastException   
 <center>![异常](images/image06.png)</center>   
 &emsp;&emsp;自定义异常都是运行时异常,异常的归类方便统一进行处理。   
@@ -1990,8 +1989,8 @@ public void main(){
 }
 ```
 
-### 2.14 java 时间格式化    
-&emsp;&emsp;SimpleDateFormat是线程不安全的。一般推荐使用ThreadLocal将SimpleDateFormat变成线程独享,已到达线程安全的目的。
+### 2.14 java 时间格式化    
+&emsp;&emsp;SimpleDateFormat是线程不安全的。一般推荐使用ThreadLocal将SimpleDateFormat变成线程独享,已到达线程安全的目的。
 
 ```java
     private static final String date_format = "yyyy-MM-dd HH:mm:ss";
@@ -2064,7 +2063,7 @@ public void main(){
 &emsp;&emsp;&emsp;&emsp;newSingleThreadExecutor 创建一个单线程化的线程池,它只会用唯一的工作线程来执行任务,保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。   
 &emsp;&emsp;&emsp;&emsp;newSingleThreadScheduledExecutor 创建一个容量为1的newSingleThreadExecutor线程池,若任务多余1个,将顺序执行。    
 &emsp;&emsp;ExecutorService:创建的线程池都实现了这个接口。   
-&emsp;&emsp;CompletionService:线程池的get方法会阻塞其他get的返回,此类用户顺序获取执行完的返回。    
+&emsp;&emsp;CompletionService:线程池的get方法会阻塞其他get的返回,此类用户顺序获取执行完的返回。    
 &emsp;&emsp;Future:获取线程执行完的返回值。       
 &emsp;&emsp;Callable:功能与Runnable类似,相比于Runnable,Callable可以返回结果。 
 
@@ -2123,9 +2122,9 @@ Callable<String> callable = new Callable<String>() {
 
 ```
 
-&emsp;&emsp;Executor接口中的execute和ExecutorService中的submit区别。(ExecutorService继承Executor)     
+&emsp;&emsp;Executor接口中的execute和ExecutorService中的submit区别。(ExecutorService继承Executor)     
 
-|原因|execute|submit|
+|原因|execute|submit|
 |:--:|:--:|:--:|
 |参数|Runnable|Runnable、Callable|
 |返回值|没有返回值|Future<?>|
@@ -2243,9 +2242,9 @@ Found 1 deadlock.
 
 &emsp;&emsp;乐观锁:假设执行某项操作,快完成时验证之前获取的资源是否被修改,如果被修改过则回滚重新执行,否则完成。   
 
-&emsp;&emsp;CAS:(Compare and Swap)其实是对比更新。例如：一个数进行自增操作,首先读取这个变量值,称旧预期值,在计算完成后准备更新前,再次获取变量值称当前预期值,如果旧预期值与当前预期值相等,说明变量没有被其他线程修改过,则更新变量,否则说明其他线程修改过变量,则当前操作放弃更新。   
+&emsp;&emsp;CAS:(Compare and Swap)其实是对比更新。例如：一个数进行自增操作,首先读取这个变量值,称旧预期值,在计算完成后准备更新前,再次获取变量值称当前预期值,如果旧预期值与当前预期值相等,说明变量没有被其他线程修改过,则更新变量,否则说明其他线程修改过变量,则当前操作放弃更新。   
 
-&emsp;&emsp;synchronized的原理及轻量级锁、自旋锁、锁消除    
+&emsp;&emsp;synchronized的原理及轻量级锁、自旋锁、锁消除    
 &emsp;&emsp;[synchronized](https://blog.csdn.net/javazejian/article/details/72828483)
 
 ### 3.7 线程安全的单例  
@@ -2292,10 +2291,10 @@ public class SingleDemo {
 ### 3.8 用户线程和守护线程   
 &emsp;&emsp;用户线程:用户线程是完全建立在用户空间的线程库,用户线程的创建、调度、同步和销毁全又库函数在用户空间完成,不需要内核的帮助。例如:一个Java应用总是从main()方法开始运行,mian()方法运行在一个线程内,它被称为主线程,也是一个用户线程。   
 
-&emsp;&emsp;守护线程:与用户线程几乎一样,唯一与用户线程的区别是,用于服务用户线程,生命周期与用户线程挂钩,用户线程退出,则守护线程退出。  
+&emsp;&emsp;守护线程:与用户线程几乎一样,唯一与用户线程的区别是,用于服务用户线程,生命周期与用户线程挂钩,用户线程退出,则守护线程退出。  
 
 &emsp;&emsp;&emsp;&emsp;守护线程注意事项:   
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;必须在线程启动项前将线程设置为守护线程。    
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;必须在线程启动项前将线程设置为守护线程。    
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;守护线程中产生的线程也是守护线程。    
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;守护线程不要用于耗时操作,避免用户线程退出,守护线程没计算完就退出了。    
 
