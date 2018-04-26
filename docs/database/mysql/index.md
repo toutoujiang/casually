@@ -612,7 +612,7 @@ mysql> select u.id,u.name,u.age,d.id,d.dept_name,d.dept_desc
 &emsp;&emsp;删除索引:  
 &emsp;&emsp;&emsp;&emsp;drop index 索引名 on 表名;  
 &emsp;&emsp;查看索引:  
-&emsp;&emsp;&emsp;&emsp;show index from 表名;  
+&emsp;&emsp;&emsp;&emsp;show index from 表名;  
 ```shell
 mysql> create index idx_age on user_info(age);
 
