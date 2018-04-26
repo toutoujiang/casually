@@ -362,10 +362,10 @@ public String substring(int beginIndex, int endIndex) {
 ### 2.4 自动装箱与拆箱  
   装箱:将值转化成对象。一般调用对象的valueOf()方法   
   拆箱:将对象转化成值。一般调用对象的xxxValue()方法  
-  ***需要注意的是:  
-  &emsp;&emsp;Integer、Short、Byte、Character、Long这几个类的valueOf方法的实现是类似的。JVM会自动缓存-128~127的对象(Character缓存0~127),如果超过则会重新创建。   
+  需要注意的是:  
+  &emsp;&emsp;Integer、Short、Byte、Character、Long这几个类的valueOf方法的实现是类似的。JVM会自动缓存-128 ~ 127的对象(Character缓存0 ~ 127),如果超过则会重新创建。   
   &emsp;&emsp;Double、Float的valueOf方法的实现是类似的。直接重新创建。   
-  &emsp;&emsp;Boolean的valueOf方法返回的是2个静态成员。   ***
+  &emsp;&emsp;Boolean的valueOf方法返回的是2个静态成员。  
 
 |值|对象|大小|
 |:---:|:---:|:---:|
@@ -1502,9 +1502,9 @@ public class ByteOutputStream {
 ![java io图](images/image05.jpg)
 
 ### 2.9 java NIO
-&emsp;&emsp;非阻塞IO
-&emsp;&emsp;单线程处理多任务,多路复用
-&emsp;&emsp;事件驱动模型
+&emsp;&emsp;非阻塞IO   
+&emsp;&emsp;单线程处理多任务,多路复用   
+&emsp;&emsp;事件驱动模型   
 
 ```java
 //服务端
@@ -1915,7 +1915,7 @@ public static void main(String[] args)throws Exception{
 &emsp;&emsp;Exception:一般分为CheckedException和RuntimeException    
 &emsp;&emsp;&emsp;&emsp;CheckedException:编写代码时必须使用try、catch否则无法编译通过。例如:使用反射的时候ClassNotFoundException、NoSuchMetodException和读取文件的时候IOException    
 &emsp;&emsp;&emsp;&emsp;RuntimeException:程序运行中出现的错误,一般编译时IDE无法检查。例如:IndexOutOfBoundsException、NullPointerException、ClassCastException   
-<center> ![异常](images/image06.png) </center>   
+<center>![异常](images/image06.png)</center>   
 &emsp;&emsp;自定义异常都是运行时异常,异常的归类方便统一进行处理。   
 
 ```java
@@ -1991,8 +1991,7 @@ public void main(){
 ```
 
 ### 2.14 java 时间格式化    
-&emsp;&emsp;SimpleDateFormat是线程不安全的。一般推荐使用ThreadLocal将    
-SimpleDateFormat变成线程独享,已到达线程安全的目的。
+&emsp;&emsp;SimpleDateFormat是线程不安全的。一般推荐使用ThreadLocal将SimpleDateFormat变成线程独享,已到达线程安全的目的。
 
 ```java
     private static final String date_format = "yyyy-MM-dd HH:mm:ss";
@@ -2036,7 +2035,7 @@ SimpleDateFormat变成线程独享,已到达线程安全的目的。
 
 ## <center>3.java并发</center>
 
-###3.1 处理器、进程、线程   
+### 3.1 处理器、进程、线程   
 &emsp;&emsp;处理器:    
 &emsp;&emsp;&emsp;&emsp;即中央处理器（CPU,Central Processing Unit）,它是一块超大规模的集成电路,是一台计算机的运算核心（Core）和控制核心（ Control Unit）。它的功能主要是解释计算机指令以及处理计算机软件中的数据。      
 &emsp;&emsp;进程:    
