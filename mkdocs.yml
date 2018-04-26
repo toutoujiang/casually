@@ -1,0 +1,30 @@
+###站点名称
+site_name: 头头酱
+
+###站点端口
+dev_addr: 0.0.0.0:80
+
+###配置主题
+# theme: readthedocs
+
+### 目录
+pages:
+    - 目录 : index.md
+    # - web :
+    #     - 浏览器渲染流程 : web/browser/index.md
+    # - app:
+    #     - APP开发模式 : app/appdevelopmentmode/index.md
+    - java:
+        - 基础篇: java/basis/index.md 
+        - 易错: java/error/index.md
+
+    - database:
+        - MySQL: database/mysql/index.md
+
+    - 网络知识 : 
+        - 网络基本知识: network/index.md
+    
+    - 服务器常见问题 :
+        - 服务器常见问题: server/index.md
+
+    
