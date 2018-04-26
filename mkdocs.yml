@@ -2,7 +2,7 @@
 site_name: 头头酱
 
 ###站点端口
-dev_addr: 0.0.0.0:11111
+dev_addr: 0.0.0.0:80
 
 ###配置主题
 # theme: readthedocs
