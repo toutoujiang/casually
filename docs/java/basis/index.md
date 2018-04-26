@@ -1,84 +1,84 @@
 # <center>基础篇</center>
-----
+
 ## 1.JVM
 ### 1.1 内存模型
-   线程共享区: 堆、方法区  
-   线程私有区: 虚拟机栈、本地方法栈、程序计数器  
+线程共享区: 堆、方法区  
+线程私有区: 虚拟机栈、本地方法栈、程序计数器  
 
-  **堆**  
-  用于存放生成的对象和数组,是线程共享区域,GC的主要区域  
-  由于GC采用**分代收集算法**,所以堆被大致分为**新生代和老年代**  
-  
-  新生代:用于存放刚创建的对象,细分为eden和survivor(from和to),一般默认分配空间为8:2(8:1:1),默认分配可以通过启动参数修改(-XX:SurvivorRatio).
-  由于JVM每次都会使用eden和survivor中的一块区域来服务，所以一般实际可用率为90%,一般GC会频繁光顾新生代，多次没有被回收的对象则进入老年代。采用复制算法进行回收。 
-    
-  年老代:用于存放存活率相对较高的对象。采用标记-清除算法进行回收。    
-  1.大对象直接进入老年代、  
-  2.(固定计算判断)新生代中每次回收都会对存活的对象进行标记，默认标记15次后进入老年代、  
-  3.(动态判断)当survivor中某一计数阶段的对象超过半数，则大于该计数阶段的对象进入老年代
-  
-  **方法区**
-  用于存放类的信息、常量、静态变量、编译后的代码。   
-  当方法区无法满足内存分配时，抛出OutOfMemoryError  
+**堆**  
+用于存放生成的对象和数组,是线程共享区域,GC的主要区域  
+由于GC采用**分代收集算法**,所以堆被大致分为**新生代和老年代**  
 
-  方法区的回收:  
-  1.没有任何对象引用的常量和引用符号(编译后用于描述类、接口、方法、字段名)，当内存回收时，被清除。   
-  2. 该类所有的实例都已经被回收，也就是java堆中不存在该类的任何实例  
-  3. 加载该类的ClassLoader已经被回收。  
-  4. 该类对应的java.lang.Class对象没有任何地方被引用，无法在任何地方通过反射访问该类的方法。    
-      
+新生代:用于存放刚创建的对象,细分为eden和survivor(from和to),一般默认分配空间为8:2(8:1:1),默认分配可以通过启动参数修改(-XX:SurvivorRatio).
+由于JVM每次都会使用eden和survivor中的一块区域来服务,所以一般实际可用率为90%,一般GC会频繁光顾新生代,多次没有被回收的对象则进入老年代。采用复制算法进行回收。 
 
-  **虚拟机栈**  
-  虚拟机栈(JVM栈)是描述java方法执行的内存模型，是线程私有的。  
-  每个线程包含一个栈区，栈中只保存基本数据类型的对象和自定义对象的引用  
-  每个栈中的基本数据类型和自定义对象的引用都是私有的。  
-  栈分为3个部分：基本类型变量，执行环境上下文，操作指令区(存放操作指令)  
-  在函数中定义的一些基本类型的变量数据对象的引用变量都在函数的栈内存中分配   
-  当在一段代码块中定义一个变量时，jVM就在栈中为这个变量分配内存空间，当该变量退出该作用域后，jvm就会释放为改变量所分配的内存空间。  
-  在JVM栈这个数据区可能会发生抛出两种错误：  
-  1.StackOverflowError 出现在栈内存设置成固定值的时候，当程序执行需要的栈内存超过设定的固定值会抛出这个错误。   
-  2.OutOfMemoryError 出现在栈内存设置成动态增长的时候，当JVM尝试申请的内存大小超过了其可用内存时会抛出这个错误 
+年老代:用于存放存活率相对较高的对象。采用标记-清除算法进行回收。    
+1.大对象直接进入老年代、  
+2.(固定计算判断)新生代中每次回收都会对存活的对象进行标记,默认标记15次后进入老年代、  
+3.(动态判断)当survivor中某一计数阶段的对象超过半数,则大于该计数阶段的对象进入老年代
+
+**方法区**
+用于存放类的信息、常量、静态变量、编译后的代码。   
+当方法区无法满足内存分配时,抛出OutOfMemoryError  
+
+方法区的回收:  
+1.没有任何对象引用的常量和引用符号(编译后用于描述类、接口、方法、字段名),当内存回收时,被清除。   
+2.该类所有的实例都已经被回收,也就是java堆中不存在该类的任何实例  
+3.加载该类的ClassLoader已经被回收。  
+4.该类对应的java.lang.Class对象没有任何地方被引用,无法在任何地方通过反射访问该类的方法。    
+    
+
+**虚拟机栈**  
+虚拟机栈(JVM栈)是描述java方法执行的内存模型,是线程私有的。  
+每个线程包含一个栈区,栈中只保存基本数据类型的对象和自定义对象的引用  
+每个栈中的基本数据类型和自定义对象的引用都是私有的。  
+栈分为3个部分：基本类型变量,执行环境上下文,操作指令区(存放操作指令)  
+在函数中定义的一些基本类型的变量数据对象的引用变量都在函数的栈内存中分配   
+当在一段代码块中定义一个变量时,jVM就在栈中为这个变量分配内存空间,当该变量退出该作用域后,jvm就会释放为改变量所分配的内存空间。  
+在JVM栈这个数据区可能会发生抛出两种错误：  
+1.StackOverflowError 出现在栈内存设置成固定值的时候,当程序执行需要的栈内存超过设定的固定值会抛出这个错误。   
+2.OutOfMemoryError 出现在栈内存设置成动态增长的时候,当JVM尝试申请的内存大小超过了其可用内存时会抛出这个错误 
 
 
-  **本地方法栈**  
-  支持使用其他类型方法调用(例如C\C++)的栈
-  本地方法栈和JVM栈是相似的,只不过服务对象不一样。
-  
-  **程序计数器**   
-  java是支持多线程的，线程之间就要根据时间片轮询抢夺CPU时间资源，当CPU执行一个时间片时候切换到其他线程之后，为了下一次CPU执行时能回到正确的执行位置，所以每一个线程都会创建一个程序计数器用于记录正在执行的字节码地址。  
-  
-  ![内存模型图](images/image01.jpg)
+**本地方法栈**  
+支持使用其他类型方法调用(例如C\C++)的栈
+本地方法栈和JVM栈是相似的,只不过服务对象不一样。
+
+**程序计数器**   
+java是支持多线程的,线程之间就要根据时间片轮询抢夺CPU时间资源,当CPU执行一个时间片时候切换到其他线程之后,为了下一次CPU执行时能回到正确的执行位置,所以每一个线程都会创建一个程序计数器用于记录正在执行的字节码地址。  
+
+![内存模型图](images/image01.jpg)
 
 
 ### 1.2 垃圾回收  
-  垃圾回收可以有效的防止内存泄漏，有效的利用空闲内存。 
-  其中程序计算器、虚拟机栈、本地方法栈为线程私有，消亡跟线程有关。所以垃圾回收主要针对堆和方法区。   
+  垃圾回收可以有效的防止内存泄漏,有效的利用空闲内存。 
+  其中程序计算器、虚拟机栈、本地方法栈为线程私有,消亡跟线程有关。所以垃圾回收主要针对堆和方法区。   
   
   **垃圾回收算法**   
     1.标记-清除算法   
-      字面意思，标记需要回收的对象，完成后进行回收。   
-      优点:基础算法，后续所有算法都在其基础上进行改进。   
-      缺点:由于内存分配时是一串连续的内存块，清除其中某一块之后就会变成断断续续的不连续的内存碎片。导致再为大对象分配内存的时候，无法找到足够的连续内存，从而提前触发垃圾回收。 
+      字面意思,标记需要回收的对象,完成后进行回收。   
+      优点:基础算法,后续所有算法都在其基础上进行改进。   
+      缺点:由于内存分配时是一串连续的内存块,清除其中某一块之后就会变成断断续续的不连续的内存碎片。导致再为大对象分配内存的时候,无法找到足够的连续内存,从而提前触发垃圾回收。 
       ![标记-清除算法](images/image02.jpg)  
     2.复制算法  
-    将现有的内存空间分成2份，每次使用其中的一份。当中一份快用完时，将其中的存活的复制到另一份之中，然后清除当前方便下次使用。  
-      优点:每次都是对整个半区进行清理，不用考虑内存碎片问题    
-      缺点:利用率低，内存为原来的一半。 
+    将现有的内存空间分成2份,每次使用其中的一份。当中一份快用完时,将其中的存活的复制到另一份之中,然后清除当前方便下次使用。  
+      优点:每次都是对整个半区进行清理,不用考虑内存碎片问题    
+      缺点:利用率低,内存为原来的一半。 
       ![复制算法](images/image03.jpg)    
     3.标记-整理算法   
-      不止标记清除对象，还对存活的对象进行位移操作，更新对象指针。    
+      不止标记清除对象,还对存活的对象进行位移操作,更新对象指针。    
       优点:不会存在内存碎片   
-      缺点:标记+清除+位移，相对其他算法成本高。   
+      缺点:标记+清除+位移,相对其他算法成本高。   
       ![标记-整理算法](images/image04.jpg)   
     4.分代回收算法   
-      分代就是其他算法的结合，根据具体事件具体对待，所以采用不同位置采用不同算法。java堆一般分为两块即新生代和老年代，区别对待为新生代存活对象少所以采用复制算法，老年代存活对象多所以采用标记整理算法。 
+      分代就是其他算法的结合,根据具体事件具体对待,所以采用不同位置采用不同算法。java堆一般分为两块即新生代和老年代,区别对待为新生代存活对象少所以采用复制算法,老年代存活对象多所以采用标记整理算法。 
 
   ----
   **垃圾回收执行机制**   
-  现在jvm一般都采用分代回收算法，即新生代采用Minor GC、老年代采用Full GC(Major GC)   
+  现在jvm一般都采用分代回收算法,即新生代采用Minor GC、老年代采用Full GC(Major GC)   
 
-  Minor GC:当eden满了，在创建对象申请内存时触发。将存活对象放入survivor。  
-  Full GC:对整个堆进行清理，一般伴随着至少一次的Minor GC，因为Full GC非常慢，所以应尽量减小Full GC的次数。 
+  Minor GC:当eden满了,在创建对象申请内存时触发。将存活对象放入survivor。  
+  Full GC:对整个堆进行清理,一般伴随着至少一次的Minor GC,因为Full GC非常慢,所以应尽量减小Full GC的次数。 
   
   **垃圾回收器**   
   垃圾回收器是垃圾回收算法的理论实践、具体实现。  
@@ -93,7 +93,7 @@
   **Parallel Old收集器**:Parallel Scavenge的老年代版本。  
   **CMS收集器**:标记-清除算法、高并发、低停顿。  
 
-  **G1收集器:JDK1.7提供的一个新的收集器。G1整体上采用标记-整理算法，但是从局部上来看采用的是复制算法。对整个堆进行清理。**  
+  **G1收集器:JDK1.7提供的一个新的收集器。G1整体上采用标记-整理算法,但是从局部上来看采用的是复制算法。对整个堆进行清理。**  
 
   |收集器|并发或并行|堆分区|算法|目标|使用场景|
   | :---:                | :----:       | :----:   | :----:            |  :----:      | :----:        |
@@ -103,17 +103,17 @@
   |Parallel Scavenge     |并行          |新生代     |复制算法            |吞吐量优先      |在后台运算而不需要太多交互的任务   |
   |Parallel Old          |并行          |老年代     |标记-整理           |吞吐量优先      |在后台运算而不需要太多交互的任务   |
   |CMS                   |并发          |老年代     |标记-清除           |响应速度优先    |集中在互联网站或B/S系统服务端上的Java应用  |
-  |G1                    |并发          |整个堆     |标记-整理+复制算法   |响应速度优先    |面向服务端应用，将来替换CMS   |
+  |G1                    |并发          |整个堆     |标记-整理+复制算法   |响应速度优先    |面向服务端应用,将来替换CMS   |
       
   <sup>
-  注:吞吐量就是CPU用于运行用户代码的时间与CPU总消耗时间的比值，即吞吐量 = 运行用户代码时间 /(运行用户代码时间 + 垃圾收集时间)。   
-  例如:虚拟机总共运行了100分钟，其中垃圾收集花掉1分钟，那吞吐量就是99%。  
+  注:吞吐量就是CPU用于运行用户代码的时间与CPU总消耗时间的比值,即吞吐量 = 运行用户代码时间 /(运行用户代码时间 + 垃圾收集时间)。   
+  例如:虚拟机总共运行了100分钟,其中垃圾收集花掉1分钟,那吞吐量就是99%。  
   </sup>
 
   **GC的庞氏骗局**   
-  虽然GC在大多数情况下还是正常的，但有时候JVM也会发生欺骗你的场景， JVM不停的在垃圾回收，可是每次回收完后堆却还是满的，很明显程序内存被使用完了，已经无法正常工作了，但JVM就是不抛出OutOfMemoryError(OOM)这个异常来告诉程序员内部发出了什么，只是不停的做老好人尝试帮我们做垃圾回收，把服务器的资源耗光了。   
+  虽然GC在大多数情况下还是正常的,但有时候JVM也会发生欺骗你的场景, JVM不停的在垃圾回收,可是每次回收完后堆却还是满的,很明显程序内存被使用完了,已经无法正常工作了,但JVM就是不抛出OutOfMemoryError(OOM)这个异常来告诉程序员内部发出了什么,只是不停的做老好人尝试帮我们做垃圾回收,把服务器的资源耗光了。   
 
-  出现这种现象的一种典型情况就是GC的GCTimeLimit和GCHeapFreeLimit参数设置不合适。GCTimeLimit的默认值是98%，也就是说如果大于等于98%的时间都用花在GC上，则会抛出OutOfMemoryError。GCHeapFreeLimit是回收后可用堆的大小，默认值是2%，也就是说只要有多余2%的内存可用就认为此次gc是成功的。如果GCTimeLimit设置过大或者GCHeapFreeLimit设置过小那么就会造成GC的庞式骗局，不停地进行垃圾回收。   
+  出现这种现象的一种典型情况就是GC的GCTimeLimit和GCHeapFreeLimit参数设置不合适。GCTimeLimit的默认值是98%,也就是说如果大于等于98%的时间都用花在GC上,则会抛出OutOfMemoryError。GCHeapFreeLimit是回收后可用堆的大小,默认值是2%,也就是说只要有多余2%的内存可用就认为此次gc是成功的。如果GCTimeLimit设置过大或者GCHeapFreeLimit设置过小那么就会造成GC的庞式骗局,不停地进行垃圾回收。   
 
 
 ### 1.3 JVM基本参数  
@@ -122,9 +122,9 @@
   查询正在运行的jvm参数:  jinfo -flags <pid>  
   jvm性能分析:  jvisualvm
 
-  -Xms:初始堆大小，如果空余内存小于40%就会逐渐增大，直到最大值。(例:-Xms128m)   
+  -Xms:初始堆大小,如果空余内存小于40%就会逐渐增大,直到最大值。(例:-Xms128m)   
   
-  -Xmx:最大堆大小，如果空余内存大于70%就会组件减小，直到最小值。(例:-Xmx128m)  
+  -Xmx:最大堆大小,如果空余内存大于70%就会组件减小,直到最小值。(例:-Xmx128m)  
 
   -Xmn:设置新生代大小,如果设置过大则会减少老年代大小。Sun官方建议堆内存的3/8。默认为堆内存的1/3。(例:-Xmn128m)  
 
@@ -138,13 +138,13 @@
 
   -Xss:每个线程栈的大小。默认1M。(例:-Xss256K)  
 
-  -XX:ThreadStackSize:与XSS效果一致，但是Xss是jvm标准推荐使用。具体效果上与Xss有一定差异。(例:-XX:ThreadStackSize=512)  
+  -XX:ThreadStackSize:与XSS效果一致,但是Xss是jvm标准推荐使用。具体效果上与Xss有一定差异。(例:-XX:ThreadStackSize=512)  
 
-  -XX:NewRatio:新生代与老年代比值，默认为2。(例:-XX:NewRatio=2)
+  -XX:NewRatio:新生代与老年代比值,默认为2。(例:-XX:NewRatio=2)
 
   -XX:SurvivorRatio:新生代eden和survivor的比值默认为1:8。(例:-XX:SurvivorRatio=8)
 
-  -XX:LargePageSizeInBytes:设置内存页的大小默认4m。(内存页:使用虚拟地址替代物理地址，虚拟地址与物理地址需要通过映射才能使CPU找到。映射就需要存储映射表,而映射表存放的地方就是页表)(例:-XX:LargePageSizeInBytes=4m)
+  -XX:LargePageSizeInBytes:设置内存页的大小默认4m。(内存页:使用虚拟地址替代物理地址,虚拟地址与物理地址需要通过映射才能使CPU找到。映射就需要存储映射表,而映射表存放的地方就是页表)(例:-XX:LargePageSizeInBytes=4m)
 
   -XX:+UseFastAccessorMethods:使用原始类型快速优化。(跳过一些方法的编译,JDK1.7默认为false)(例:-XX:UseFastAccessorMethods)   
 
@@ -154,11 +154,11 @@
 
   -XX:+AggressiveOpts:加快编译。(-XX:+AggressiveOpts)  
 
-  -XX:+UseBiasedLocking:优化锁的机制，官方文档上说大部分情况下有加速效果，但在某种情况下会减慢运行速度。(例:-XX:+UseBiasedLocking)  
+  -XX:+UseBiasedLocking:优化锁的机制,官方文档上说大部分情况下有加速效果,但在某种情况下会减慢运行速度。(例:-XX:+UseBiasedLocking)  
 
   -Xnoclassgc:禁用垃圾回收。(例:-Xnoclassgc)
 
-  -XX:SoftRefLRUPolicyMSPerMB:这个参数比较有用的，官方解释是：Soft reference在虚拟机中比在客户集中存活的更长一些。其清除频率可以用命令行参数 -XX:SoftRefLRUPolicyMSPerMB=<N>来控制，这可以指定每兆堆空闲空间的 soft reference 保持存活(一旦它不强可达了)的毫秒数，这意味着每兆堆中的空闲空间中的 soft reference 会(在最后一个强引用被回收之后)存活1秒钟。注意，这是一个近似的值，因为  soft reference 只会在垃圾回收时才会被清除，而垃圾回收并不总在发生。系统默认为一秒，我觉得没必要等1秒，客户集中不用就立刻清除，改为 -XX:SoftRefLRUPolicyMSPerMB=0(例:-XX:SoftRefLRUPolicyMSPerMB=0)  
+  -XX:SoftRefLRUPolicyMSPerMB:这个参数比较有用的,官方解释是：Soft reference在虚拟机中比在客户集中存活的更长一些。其清除频率可以用命令行参数 -XX:SoftRefLRUPolicyMSPerMB=<N>来控制,这可以指定每兆堆空闲空间的 soft reference 保持存活(一旦它不强可达了)的毫秒数,这意味着每兆堆中的空闲空间中的 soft reference 会(在最后一个强引用被回收之后)存活1秒钟。注意,这是一个近似的值,因为  soft reference 只会在垃圾回收时才会被清除,而垃圾回收并不总在发生。系统默认为一秒,我觉得没必要等1秒,客户集中不用就立刻清除,改为 -XX:SoftRefLRUPolicyMSPerMB=0(例:-XX:SoftRefLRUPolicyMSPerMB=0)  
 
   -XX:PretenureSizeThreshold:设置生成的对象超过多少就直接进入老年代。(例:-XX:PretenureSizeThreshold=3M)  
 
@@ -193,26 +193,26 @@
   &emsp;&emsp;tid:线程id   
   &emsp;&emsp;nid:操作系统映射的线程id   
   线程的状态   
-  &emsp;&emsp;New:当线程对象创建时存在的状态，此时线程不可能执行   
-  &emsp;&emsp;Runnable:当调用thread.start()后，线程变成为Runnable状态   
+  &emsp;&emsp;New:当线程对象创建时存在的状态,此时线程不可能执行   
+  &emsp;&emsp;Runnable:当调用thread.start()后,线程变成为Runnable状态   
   &emsp;&emsp;Running:线程正在执行   
-  &emsp;&emsp;Waiting:执行thread.join()或在锁对象调用obj.wait()等情况就会进该状态，表明线程正处于等待某个资源或条件发生来唤醒自己   
-  &emsp;&emsp;Timed_Waiting:执行Thread.sleep(long)、thread.join(long)或obj.wait(long)等就会进该状态，与Waiting的区别在于Timed_Waiting的等待有时间限制   
-  &emsp;&emsp;Blocked:如果进入同步方法或同步代码块，没有获取到锁，则会进入该状态   
-  &emsp;&emsp;Dead:线程执行完毕，或者抛出了未捕获的异常之后，会进入dead状态，表示该线程结束   
+  &emsp;&emsp;Waiting:执行thread.join()或在锁对象调用obj.wait()等情况就会进该状态,表明线程正处于等待某个资源或条件发生来唤醒自己   
+  &emsp;&emsp;Timed_Waiting:执行Thread.sleep(long)、thread.join(long)或obj.wait(long)等就会进该状态,与Waiting的区别在于Timed_Waiting的等待有时间限制   
+  &emsp;&emsp;Blocked:如果进入同步方法或同步代码块,没有获取到锁,则会进入该状态   
+  &emsp;&emsp;Dead:线程执行完毕,或者抛出了未捕获的异常之后,会进入dead状态,表示该线程结束   
   &emsp;&emsp;Deadlock:表示有死锁   
   &emsp;&emsp;Waiting on condition:等待某个资源或条件发生来唤醒自己   
   &emsp;&emsp;Blocked:阻塞   
   &emsp;&emsp;Waiting on monitor entry:在等待获取锁   
   &emsp;&emsp;in Object.wait():获取锁后又执行obj.wait()放弃锁  
 
-  jmap:显示某个进程内物理内存情况，
+  jmap:显示某个进程内物理内存情况,
   &emsp;&emsp;jmap -finalizerinfo<pid\>:打印正等候回收的对象的信息  
-  &emsp;&emsp;jmap -heap<pid\>:打印heap的概要信息，GC使用的算法，heap的配置及wise heap的使用情况.  
+  &emsp;&emsp;jmap -heap<pid\>:打印heap的概要信息,GC使用的算法,heap的配置及wise heap的使用情况.  
   &emsp;&emsp;jmap -histo[:live]<pid\>:打印每个class的实例数目,内存占用,类全名信息. VM的内部类名字开头会加上前缀”*”. 如果live子参数加上后,只统计活的对象数量  
   &emsp;&emsp;jmap -F 强迫.在pid没有相应的时候使用-dump或者-histo参数. 在这个模式下,live子参数无效    
   &emsp;&emsp;jmap -J<参数> 传递参数给jmap启动的jvm. 
-  &emsp;&emsp;jmap -dump:[live]format=b,file=<filename>:使用二进制形式,输出jvm的heap内容到文件=. live子选项是可选的，假如指定live选项,那么只输出活的对象到文件   
+  &emsp;&emsp;jmap -dump:[live]format=b,file=<filename>:使用二进制形式,输出jvm的heap内容到文件=. live子选项是可选的,假如指定live选项,那么只输出活的对象到文件   
 
   jstat:  
 
@@ -248,17 +248,17 @@
   &emsp;&emsp;@<filename\>                从文件中读取选项和文件名  
   &emsp;&emsp;示例:javac -encoding gbk -cp ../IntelliJ\ IDEA\ Project/test_one/lib/junit-4.11.jar:../IntelliJ\ IDEA\ Project/test_one/lib/log4j-1.2.17.jar @list.txt -d out/   
 
-  javap:JDK自带的反汇编器，可以查看java编译器为我们生成的字节码  
+  javap:JDK自带的反汇编器,可以查看java编译器为我们生成的字节码  
   &emsp;&emsp;-help 帮助  
   &emsp;&emsp;-version 版本信息  
-  &emsp;&emsp;-verbose(-v) 输出栈大小，方法参数的个数   
+  &emsp;&emsp;-verbose(-v) 输出栈大小,方法参数的个数   
   &emsp;&emsp;-l 输出行和变量的表  
   &emsp;&emsp;-public 只输出public方法和域  
   &emsp;&emsp;-protected 只输出public和protected类和成员  
-  &emsp;&emsp;-package 只输出包，public和protected类和成员，这是默认的  
+  &emsp;&emsp;-package 只输出包,public和protected类和成员,这是默认的  
   &emsp;&emsp;-private(-p) 输出所有类和成员  
   &emsp;&emsp;-s 输出内部类型签名   
-  &emsp;&emsp;-c 输出分解后的代码，例如，类中每一个方法内，包含java字节码的指令  
+  &emsp;&emsp;-c 输出分解后的代码,例如,类中每一个方法内,包含java字节码的指令  
   &emsp;&emsp;-sysinfo 显示正在处理的类的系统信息(路径、大小、日期、MD5哈希)     
   &emsp;&emsp;-constants 输出静态final常量    
   &emsp;&emsp;-classpath <pathlist\>  指定javap用来查找类的路径。目录用：分隔   
@@ -266,7 +266,7 @@
 
   jd-gui:java 反编译可视化工具  
   &emsp;&emsp;[https://github.com/java-decompiler/jd-gui](https://github.com/java-decompiler/jd-gui)   
-  &emsp;&emsp;下载源码，根据下面系统类型，编译成对应的可运行的程序。   
+  &emsp;&emsp;下载源码,根据下面系统类型,编译成对应的可运行的程序。   
 
   jdk对应的版本:   
 
@@ -284,21 +284,21 @@
 
 ### 1.6 JAVA类加载 
   启动类加载器(bootstarp ClassLoader):   
-  &emsp;&emsp;C++实现，用于加载jre/lib下的指定文件。也可以使用-Xbootclasspath加载指定jar。由于涉及到虚拟机实现细节，不允许直接获取。  
+  &emsp;&emsp;C++实现,用于加载jre/lib下的指定文件。也可以使用-Xbootclasspath加载指定jar。由于涉及到虚拟机实现细节,不允许直接获取。  
 
   扩展类加载器(Extension ClassLoader):   
   &emsp;&emsp;由ExtClassLoader类实现,用于加载jre/lib/ext下面全部文件。也可以使用-Djava.ext.dir加载指定jar。可以获取。   
 
   系统类加载器(System ClassLoader):   
-  &emsp;&emsp;由AppClassLoader类实现，用于加载用户第三方类库，也可以使用-Djava.class.path加载指定jar。可以获取   
+  &emsp;&emsp;由AppClassLoader类实现,用于加载用户第三方类库,也可以使用-Djava.class.path加载指定jar。可以获取   
 
   类的加载:    
   &emsp;&emsp;1.获取类的文件字节流     
   &emsp;&emsp;2.将字节流获取的信息储存在方法区   
-  &emsp;&emsp;3.在堆中生成一个Class对象，指向方法区存储的对象   
+  &emsp;&emsp;3.在堆中生成一个Class对象,指向方法区存储的对象   
 
   双亲委派:    
-  &emsp;&emsp;加载类的时候，递归调用父级类加载器，委托父类加载，最终都会到顶层类加载器中，而顶层的类加载器中会先判断该类是否已经被加载，或者加载改类。当该类无法加载时，子加载器才会自己加载。(自下而上的判断是否被加载，自下而上的尝试加载类)这样就保证了一个类在不同加载器环境中获取到的是同一个类。破坏双亲委托一般重写加载器的loadClass方法。
+  &emsp;&emsp;加载类的时候,递归调用父级类加载器,委托父类加载,最终都会到顶层类加载器中,而顶层的类加载器中会先判断该类是否已经被加载,或者加载改类。当该类无法加载时,子加载器才会自己加载。(自下而上的判断是否被加载,自下而上的尝试加载类)这样就保证了一个类在不同加载器环境中获取到的是同一个类。破坏双亲委托一般重写加载器的loadClass方法。
 
 ---------
 ## <center>2.基础篇</center>
@@ -307,9 +307,9 @@
 |类型名称|类型描述|封装器类|类型取值|
 |:---:|:----:|:----:|:----:|
 |boolean|一个信息比特|Boolean|true, false|
-|byte|一种8位有正负的二进制整数|Byte|最小值-128，最大值127|
-|short|一种16位有正负的二进制整数|Short|最小值-32768，最大值32767|
-|int|一种32位有正负的二进制整数|Integer|最小值-2147483648(-231)，最大值2147483647(231-1)|
+|byte|一种8位有正负的二进制整数|Byte|最小值-128,最大值127|
+|short|一种16位有正负的二进制整数|Short|最小值-32768,最大值32767|
+|int|一种32位有正负的二进制整数|Integer|最小值-2147483648(-231),最大值2147483647(231-1)|
 |long|一种64位有正负的二进制整数|Long|-263~(263-1)|
 |float|一种单精度的32位IEEE754标准下的浮点数据|Float|1.4E-45~3.4028235E38|
 |double|一种双精度的64位IEEE754标准下的浮点数据|Double|4.9E-324~1.7976931348623157E308|
@@ -341,7 +341,7 @@ public String substring(int beginIndex, int endIndex) {
     return new String(value, beginIndex, subLen);
 }
 ```
-从代码上看JDK1.6引用的是一整个字符串。如果这个字符串很大，当其中截取小的一部分引用的时候，会导致原来被引用的整个字符串无法回收。而JDK1.7是重新生成一个新的字符串。    
+从代码上看JDK1.6引用的是一整个字符串。如果这个字符串很大,当其中截取小的一部分引用的时候,会导致原来被引用的整个字符串无法回收。而JDK1.7是重新生成一个新的字符串。    
 
 ### 2.3 字符串的不可变性   
   1.字符串常量池的需要   
@@ -434,7 +434,7 @@ Map
 LinkedList:   
 &emsp;&emsp;LinkedList的本质是双向链表。线程不同步   
 ```java
-(虽然标明了不序列化，但是实现了writeObject和readObject)
+(虽然标明了不序列化,但是实现了writeObject和readObject)
 transient int size = 0;  //元素总个数
 transient Node<E> first; //头指针
 transient Node<E> last;  //尾指针
@@ -556,9 +556,9 @@ private static final Object[] EMPTY_ELEMENTDATA = {};
 //默认的空数组
 private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 //存放元素的数组
-(虽然标明了不序列化，但是实现了writeObject和readObject)
+(虽然标明了不序列化,但是实现了writeObject和readObject)
 transient Object[] elementData;
-//大小，创建对象时Java会将int初始化为0
+//大小,创建对象时Java会将int初始化为0
 private int size;
 ```
 ```java
@@ -579,7 +579,7 @@ private void ensureCapacityInternal(int minCapacity) {
 private void ensureExplicitCapacity(int minCapacity) {
     //修改次数+1
     modCount++; 
-    //如果当前下标超过数组容量，则扩容
+    //如果当前下标超过数组容量,则扩容
     if (minCapacity - elementData.length > 0)
         grow(minCapacity);
 }
@@ -597,7 +597,7 @@ private void grow(int minCapacity) {
     //根据预设容量和原数组重新生成新数组
     elementData = Arrays.copyOf(elementData, newCapacity);
 }
-//检查预设容量是否超过最大，如果没有超过则返回最大，如果超过则报错
+//检查预设容量是否超过最大,如果没有超过则返回最大,如果超过则报错
 private static int hugeCapacity(int minCapacity) {
     if (minCapacity < 0)
         throw new OutOfMemoryError();
@@ -632,9 +632,9 @@ public E remove(int index) {
     E oldValue = elementData(index);
     int numMoved = size - index - 1;
     if (numMoved > 0)
-        //利用C++编写的函数，把数组要删除的位置以后的元素往前移动一位
+        //利用C++编写的函数,把数组要删除的位置以后的元素往前移动一位
         //例:[1,2,3,4,5,6] -> [1,2,4,5,6,6] 删除第二个元素
-        //参数：源数组，源数组起始位置，目标数组，目标数据中的起始位置，要复制的数组元素的数量
+        //参数：源数组,源数组起始位置,目标数组,目标数据中的起始位置,要复制的数组元素的数量
         System.arraycopy(elementData, index+1, elementData, index, numMoved);
     elementData[--size] = null;
     return oldValue;
@@ -657,11 +657,11 @@ private void grow(int minCapacity) {
 ```
 |区别|ArrayList|Vector|
 |:---:|:---:|:---:|
-|设置扩容|不能设置，默认1.5倍|可以设置，默认2倍|
+|设置扩容|不能设置,默认1.5倍|可以设置,默认2倍|
 |无参初始化容量|0|10|
 |线程同步|不同步|同步|
 
-多线程情况下多数使用Vector，也可以使用Collections.synchronizedList(List list)返回一个线程同步的List。   
+多线程情况下多数使用Vector,也可以使用Collections.synchronizedList(List list)返回一个线程同步的List。   
 
 HashMap(JDK1.8)   
 &emsp;&emsp;HashMap 本质上是一个数组+链表(红黑树)。线程不同步   
@@ -681,7 +681,7 @@ static final int UNTREEIFY_THRESHOLD = 6;
 static final int MIN_TREEIFY_CAPACITY = 64;
 //存储数据的数组
 transient Node<K,V>[] table;
-//平级缓存所有table的单个节点，用于遍历
+//平级缓存所有table的单个节点,用于遍历
 transient Set<Map.Entry<K,V>> entrySet;
 //已存数据的容量
 transient int size;
@@ -726,19 +726,19 @@ static final int hash(Object key) {
 final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                 boolean evict) {
     Node<K,V>[] tab; Node<K,V> p; int n, i;
-    //判断table是否为空，为空这创建数组
+    //判断table是否为空,为空这创建数组
     if ((tab = table) == null || (n = tab.length) == 0)
         n = (tab = resize()).length;
-    //判断当前位置是否存在对象，不存在则根据创建对象保存
+    //判断当前位置是否存在对象,不存在则根据创建对象保存
     if ((p = tab[i = (n - 1) & hash]) == null)
         tab[i] = newNode(hash, key, value, null);
     else {
         Node<K,V> e; K k;
-        //判断如果计算的hash值一样且key也一样，则覆盖
+        //判断如果计算的hash值一样且key也一样,则覆盖
         if (p.hash == hash &&
             ((k = p.key) == key || (key != null && key.equals(k))))
             e = p;
-        //判断当前节点下是否为红黑树，否则为链表
+        //判断当前节点下是否为红黑树,否则为链表
         else if (p instanceof TreeNode)
             e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
         else {
@@ -746,7 +746,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                 if ((e = p.next) == null) {
                     //新建节点加入链表尾
                     p.next = newNode(hash, key, value, null);
-                    //如果链表长度大于等于默认转换值，则进行链表转红黑树处理
+                    //如果链表长度大于等于默认转换值,则进行链表转红黑树处理
                     if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
                         treeifyBin(tab, hash);
                     break;
@@ -767,7 +767,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
         }
     }
     ++modCount;
-    //已存数据的容量加一，并判断是否超过临界值，超过则进行扩容
+    //已存数据的容量加一,并判断是否超过临界值,超过则进行扩容
     if (++size > threshold)
         resize();
     afterNodeInsertion(evict);
@@ -778,7 +778,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 //链表转红黑树
 final void treeifyBin(Node<K,V>[] tab, int hash) {
     int n, index; Node<K,V> e;
-    //验证当前存储的数组容量是否大于默认转换红黑树的容量，否则重新计算容量
+    //验证当前存储的数组容量是否大于默认转换红黑树的容量,否则重新计算容量
     if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
         resize();
     else if ((e = tab[index = (n - 1) & hash]) != null) {
@@ -795,7 +795,7 @@ final void treeifyBin(Node<K,V>[] tab, int hash) {
             tl = p;
         } while ((e = e.next) != null);
         if ((tab[index] = hd) != null)
-            //标记根节点，重新分配并着色
+            //标记根节点,重新分配并着色
             hd.treeify(tab);
     }
 }
@@ -807,7 +807,7 @@ final Node<K,V>[] resize() {
     int oldThr = threshold;
     int newCap, newThr = 0;
     if (oldCap > 0) {
-        //如果容量超过最大值，则不进行扩充
+        //如果容量超过最大值,则不进行扩充
         if (oldCap >= MAXIMUM_CAPACITY) {
             threshold = Integer.MAX_VALUE;
             return oldTab;
@@ -824,7 +824,7 @@ final Node<K,V>[] resize() {
         newCap = DEFAULT_INITIAL_CAPACITY;
         newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
     }
-    //如果新的临界值为0，重新计算临界值
+    //如果新的临界值为0,重新计算临界值
     if (newThr == 0) {
         float ft = (float)newCap * loadFactor;
         newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
@@ -842,14 +842,14 @@ final Node<K,V>[] resize() {
             Node<K,V> e;
             if ((e = oldTab[j]) != null) {
                 oldTab[j] = null;
-                //如果之前的是单个对象，则直接复制
+                //如果之前的是单个对象,则直接复制
                 if (e.next == null)
                     newTab[e.hash & (newCap - 1)] = e;
-                //之前为红黑树，则新对象也为红黑树
+                //之前为红黑树,则新对象也为红黑树
                 else if (e instanceof TreeNode)
                     ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                 else { 
-                    //之前为链表，新对象也为链表
+                    //之前为链表,新对象也为链表
                     Node<K,V> loHead = null, loTail = null;
                     Node<K,V> hiHead = null, hiTail = null;
                     Node<K,V> next;
@@ -894,13 +894,13 @@ final Node<K,V> getNode(int hash, Object key) {
     Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
     if ((tab = table) != null && (n = tab.length) > 0 &&
         (first = tab[(n - 1) & hash]) != null) {
-        //根据hash值找到当前对象，如果当前对象key值也相等这直接返回
+        //根据hash值找到当前对象,如果当前对象key值也相等这直接返回
         if (first.hash == hash && 
             ((k = first.key) == key || (key != null && key.equals(k))))
             return first;
-        //如果hash值相等，且存在链表或树，则遍历
+        //如果hash值相等,且存在链表或树,则遍历
         if ((e = first.next) != null) {
-            //如果是红黑树，则调用节点查找
+            //如果是红黑树,则调用节点查找
             if (first instanceof TreeNode)
                 return ((TreeNode<K,V>)first).getTreeNode(hash, key);
             //链表这循环查找
@@ -931,7 +931,7 @@ final TreeNode<K,V> find(int h, Object k, Class<?> kc) {
             p = pr;
         else if (pr == null)
             p = pl;
-        //如果不是按照hash值排序，那么就通过比较器返回下一个节点
+        //如果不是按照hash值排序,那么就通过比较器返回下一个节点
         else if ((kc != null ||
                   (kc = comparableClassFor(k)) != null) &&
                   (dir = compareComparables(kc, k, pk)) != 0)
@@ -999,7 +999,7 @@ final Node<K,V> removeNode(int hash, Object key, Object value,
 ```
 
 LinkedHashMap    
-&emsp;&emsp;LinkedHashMap是HashMap的子类，保存了插入的顺序。线程不同步   
+&emsp;&emsp;LinkedHashMap是HashMap的子类,保存了插入的顺序。线程不同步   
 ```java
 public class LinkedHashMap<K,V> extends HashMap<K,V>
     implements Map<K,V>
@@ -1023,7 +1023,7 @@ public class LinkedHashMap<K,V> extends HashMap<K,V>
 ```
 
 HashTable   
-&emsp;&emsp;HashTable与HashMap类似，内部存储结构不一样，不允许记录的键或者值为空。Hashtable不建议使用，可以使用ConcurrentHashMap替代。线程同步
+&emsp;&emsp;HashTable与HashMap类似,内部存储结构不一样,不允许记录的键或者值为空。Hashtable不建议使用,可以使用ConcurrentHashMap替代。线程同步
 ```java
 //存储数据的数组
 private transient Entry<?,?>[] table;
@@ -1037,7 +1037,7 @@ private float loadFactor;
 private transient int modCount = 0;
 //缓存所以数据的key值
 private transient volatile Set<K> keySet;
-//平级缓存所有table的单个节点，用于遍历
+//平级缓存所有table的单个节点,用于遍历
 private transient volatile Set<Map.Entry<K,V>> entrySet;
 
 private static class Entry<K,V> implements Map.Entry<K,V> {
@@ -1068,7 +1068,7 @@ public synchronized V put(K key, V value) {
     @SuppressWarnings("unchecked")
     //找到对应位置的节点
     Entry<K,V> entry = (Entry<K,V>)tab[index];
-    //如果节点有值则循环节点，覆盖旧值
+    //如果节点有值则循环节点,覆盖旧值
     for(; entry != null ; entry = entry.next) {
         if ((entry.hash == hash) && entry.key.equals(key)) {
             V old = entry.value;
@@ -1089,7 +1089,7 @@ private void addEntry(int hash, K key, V value, int index) {
         hash = key.hashCode();
         index = (hash & 0x7FFFFFFF) % tab.length;
     }
-    //如果当前hash值获取到节点，那么将该节点添加到当前节点链表的头部，否则新建一个节点添加到数组的当前位置
+    //如果当前hash值获取到节点,那么将该节点添加到当前节点链表的头部,否则新建一个节点添加到数组的当前位置
     @SuppressWarnings("unchecked")
     Entry<K,V> e = (Entry<K,V>) tab[index];
     tab[index] = new Entry<>(hash, key, value, e);
@@ -1105,7 +1105,7 @@ TreeMap
 WeakHashMap   
 &emsp;&emsp;WeakHashMap 跟HashMap类似。数组+链表。“弱键”(可以搜索WeakReference)。线程不同步   
 ```java
-//默认初始化容量，值为16
+//默认初始化容量,值为16
 private static final int DEFAULT_INITIAL_CAPACITY = 16;
 //最大容量
 private static final int MAXIMUM_CAPACITY = 1 << 30;
@@ -1121,7 +1121,7 @@ private int threshold;
 private final float loadFactor;
 //被回收的“弱键”
 private final ReferenceQueue<Object> queue = new ReferenceQueue<>();
-//平级缓存所有table的单个节点，用于遍历
+//平级缓存所有table的单个节点,用于遍历
 private transient Set<Map.Entry<K,V>> entrySet;
 //修改次数
 int modCount;
@@ -1152,7 +1152,7 @@ public V put(K key, V value) {
     Entry<K,V>[] tab = getTable();
     //根据hash计算位置
     int i = indexFor(h, tab.length);
-    //循环判断是否存在重复值，有则覆盖
+    //循环判断是否存在重复值,有则覆盖
     for (Entry<K,V> e = tab[i]; e != null; e = e.next) {
         if (h == e.hash && eq(k, e.get())) {
             V oldValue = e.value;
@@ -1163,7 +1163,7 @@ public V put(K key, V value) {
     }
     //修改次数+1
     modCount++;
-    //如果当前hash值获取到节点，那么将该节点添加到当前节点链表的头部，否则新建一个节点添加到数组的当前位置
+    //如果当前hash值获取到节点,那么将该节点添加到当前节点链表的头部,否则新建一个节点添加到数组的当前位置
     Entry<K,V> e = tab[i];
     tab[i] = new Entry<>(k, value, queue, h, e);
     //长度大于临界值则扩容
@@ -1184,7 +1184,7 @@ public V get(Object key) {
     int index = indexFor(h, tab.length);
     //获取对应位置的节点
     Entry<K,V> e = tab[index];
-    //判断节点是key值是否相等，如不相等这循环查找链表
+    //判断节点是key值是否相等,如不相等这循环查找链表
     while (e != null) {
         if (e.hash == h && eq(k, e.get()))
             return e.value;
@@ -1206,7 +1206,7 @@ public V remove(Object key) {
     //获取对应位置的节点
     Entry<K,V> prev = tab[i];
     Entry<K,V> e = prev;
-    //循环对象节点判断key值是否相等，如果相等则删除对应链表上的节点
+    //循环对象节点判断key值是否相等,如果相等则删除对应链表上的节点
     while (e != null) {
         Entry<K,V> next = e.next;
         if (h == e.hash && eq(k, e.get())) {
@@ -1336,7 +1336,7 @@ public class TreeSet<E> extends AbstractSet<E>
 ```
 
 ### 2.7 枚举   
-&emsp;&emsp;枚举类用于代替static final(enum默认是final类，默认继承Enum类)。枚举又可以用于实现单例的实体(1.枚举自己实现序列化，2.枚举默认为线程安全)。
+&emsp;&emsp;枚举类用于代替static final(enum默认是final类,默认继承Enum类)。枚举又可以用于实现单例的实体(1.枚举自己实现序列化,2.枚举默认为线程安全)。
 ```java
 public class JStackDemo1 {
   @Test
@@ -1376,7 +1376,7 @@ public class JStackDemo1 {
 |:---:|:---:|
 |读取一个字节返回一个字节|使用字节流读取一个或者多个字节然后返回|
 |可以处理所以类型的文件|只能处理文本文件|
-|不会使用缓冲区，对文件进行直接操作|使用缓冲区，可以通过缓冲区对文件进行再操作|
+|不会使用缓冲区,对文件进行直接操作|使用缓冲区,可以通过缓冲区对文件进行再操作|
 
 ```java
 public class ByteOutputStream {
@@ -1460,7 +1460,7 @@ public class ByteOutputStream {
             while ((read = bis.read(bytes)) != -1){
                 //将缓存的字节按照指定的大小输出
                 bos.write(bytes,0,read);
-                //刷新缓冲区(如果不刷新缓冲区，异常报错直接关闭输出流，文件将不会有之前读取的内容)
+                //刷新缓冲区(如果不刷新缓冲区,异常报错直接关闭输出流,文件将不会有之前读取的内容)
                 bos.flush();
             }
         }
@@ -1495,7 +1495,7 @@ public class ByteOutputStream {
 
 ### 2.9 java NIO
 &emsp;&emsp;非阻塞IO
-&emsp;&emsp;单线程处理多任务，多路复用
+&emsp;&emsp;单线程处理多任务,多路复用
 &emsp;&emsp;事件驱动模型
 
 ```java
@@ -1565,7 +1565,7 @@ public class NioServer {
 
         ByteBuffer byteBuffer1 = ByteBuffer.allocate(BUF_SIZE);
         byteBuffer1.clear();
-        byteBuffer1.put("客户端你好，请求连接已建立".getBytes("UTF-8"));
+        byteBuffer1.put("客户端你好,请求连接已建立".getBytes("UTF-8"));
         byteBuffer1.flip();
         clientChannl.write(byteBuffer1);
 
@@ -1591,7 +1591,7 @@ public class NioServer {
                 String info = new String(data,0,data.length,"UTF-8").trim();
                 sb.append(info);
                 System.out.println("从客户端发送的消息："+info);
-                //清除字节缓冲区，方便下次重头开始写入
+                //清除字节缓冲区,方便下次重头开始写入
                 byteBuffer.clear();
                 //再次从管道中读取指定大小的数据
                 byteRead = clientChannl.read(byteBuffer);
@@ -1659,7 +1659,7 @@ public class NioClient {
         clientChannl.configureBlocking(false);
         //创建一个本地连接端口的socket,将通道链接这socket
         clientChannl.connect(new InetSocketAddress(PORT));
-        //将通道注册到选择器上，并声明连接
+        //将通道注册到选择器上,并声明连接
         clientChannl.register(selector, SelectionKey.OP_CONNECT);
         while (true){
             //查询选择器上的通道
@@ -1892,23 +1892,23 @@ public static void main(String[] args)throws Exception{
 |:---:|:---:|:---:|
 |声明serialVersionUID|是|是|
 |实现类|无|readExterna和writeExternal|
-|transient修饰变量|不加入序列化|跟修饰无关，与变量是否通过readExterna读取和writeExternal写入有关|
+|transient修饰变量|不加入序列化|跟修饰无关,与变量是否通过readExterna读取和writeExternal写入有关|
 
 ### 2.12 java 泛型    
 &emsp;&emsp;实质类型通配    
-&emsp;&emsp;继承泛型类要么保持泛型化(子类必须有父类通配)，要么不在泛型化。   
+&emsp;&emsp;继承泛型类要么保持泛型化(子类必须有父类通配),要么不在泛型化。   
 &emsp;&emsp;泛型编译后类型为Object即类型擦除  
 &emsp;&emsp;泛型限定范围使用extends(<T extends Map>)   
-&emsp;&emsp;由于被编译成Object，但是在实例化的成对应类型，如果在运行中想要获取实例化类型可以使用反射      
+&emsp;&emsp;由于被编译成Object,但是在实例化的成对应类型,如果在运行中想要获取实例化类型可以使用反射      
 
 ### 2.13 java 异常    
-&emsp;&emsp;java异常一般分为2大种{Error,Exception}，其中Throwable类是异常的超类。       
+&emsp;&emsp;java异常一般分为2大种{Error,Exception},其中Throwable类是异常的超类。       
 &emsp;&emsp;Error:程序本身无法捕获和处理。例如:OutOfMemoryError、StackOverflowError   
 &emsp;&emsp;Exception:一般分为CheckedException和RuntimeException    
 &emsp;&emsp;&emsp;&emsp;CheckedException:编写代码时必须使用try、catch否则无法编译通过。例如:使用反射的时候ClassNotFoundException、NoSuchMetodException和读取文件的时候IOException    
-&emsp;&emsp;&emsp;&emsp;RuntimeException:程序运行中出现的错误，一般编译时IDE无法检查。例如:IndexOutOfBoundsException、NullPointerException、ClassCastException   
+&emsp;&emsp;&emsp;&emsp;RuntimeException:程序运行中出现的错误,一般编译时IDE无法检查。例如:IndexOutOfBoundsException、NullPointerException、ClassCastException   
 <center> ![异常](images/image06.png) </center>   
-&emsp;&emsp;自定义异常都是运行时异常，异常的归类方便统一进行处理。   
+&emsp;&emsp;自定义异常都是运行时异常,异常的归类方便统一进行处理。   
 
 ```java
 class GetInfoException extends RuntimeException{
@@ -1984,7 +1984,7 @@ public void main(){
 
 ### 2.14 java 时间格式化    
 &emsp;&emsp;SimpleDateFormat是线程不安全的。一般推荐使用ThreadLocal将    
-SimpleDateFormat变成线程独享，已到达线程安全的目的。
+SimpleDateFormat变成线程独享,已到达线程安全的目的。
 
 ```java
     private static final String date_format = "yyyy-MM-dd HH:mm:ss";
@@ -2030,36 +2030,36 @@ SimpleDateFormat变成线程独享，已到达线程安全的目的。
 
 ###3.1 处理器、进程、线程   
 &emsp;&emsp;处理器:    
-&emsp;&emsp;&emsp;&emsp;即中央处理器（CPU，Central Processing Unit），它是一块超大规模的集成电路，是一台计算机的运算核心（Core）和控制核心（ Control Unit）。它的功能主要是解释计算机指令以及处理计算机软件中的数据。      
+&emsp;&emsp;&emsp;&emsp;即中央处理器（CPU,Central Processing Unit）,它是一块超大规模的集成电路,是一台计算机的运算核心（Core）和控制核心（ Control Unit）。它的功能主要是解释计算机指令以及处理计算机软件中的数据。      
 &emsp;&emsp;进程:    
-&emsp;&emsp;&emsp;&emsp;进程（Process）是计算机中的程序关于某数据集合上的一次运行活动，是系统进行资源分配和调度的基本单位，是操作系统结构的基础。在早期面向进程设计的计算机结构中，进程是程序的基本执行实体；在当代面向线程设计的计算机结构中，进程是线程的容器。程序是指令、数据及其组织形式的描述，进程是程序的实体。       
+&emsp;&emsp;&emsp;&emsp;进程（Process）是计算机中的程序关于某数据集合上的一次运行活动,是系统进行资源分配和调度的基本单位,是操作系统结构的基础。在早期面向进程设计的计算机结构中,进程是程序的基本执行实体；在当代面向线程设计的计算机结构中,进程是线程的容器。程序是指令、数据及其组织形式的描述,进程是程序的实体。       
 &emsp;&emsp;线程:    
-&emsp;&emsp;&emsp;&emsp;线程，有时被称为轻量级进程(Lightweight Process，LWP），是程序执行流的最小单元。通常在一个进程中可以包含若干个线程，线程可以利用进程所拥有的资源，在引入线程的操作系统中，通常都是把进程作为分配资源的基本单位，而把线程作为独立运行和独立调度的基本单位，由于线程比进程更小，基本上不拥有系统资源，故对它的调度所付出的开销就会小得多，能更高效的提高系统多个程序间并发执行的程度。     
+&emsp;&emsp;&emsp;&emsp;线程,有时被称为轻量级进程(Lightweight Process,LWP）,是程序执行流的最小单元。通常在一个进程中可以包含若干个线程,线程可以利用进程所拥有的资源,在引入线程的操作系统中,通常都是把进程作为分配资源的基本单位,而把线程作为独立运行和独立调度的基本单位,由于线程比进程更小,基本上不拥有系统资源,故对它的调度所付出的开销就会小得多,能更高效的提高系统多个程序间并发执行的程度。     
 
 ### 3.1.1 进程、线程区别    
 - 一个程序至少有一个进程。一个进程至少有一个线程。    
 - 一个线程挂了整个进程就挂了。一个进程挂了保护模式下不会影响该程序的其他进程。   
-- 进程在执行过程中拥有独立的内存单元，而多个线程共享内存，从而极大地提高了程序的运行效率。   
-- 线程不能够独立执行，必须依存在应用程序中。
+- 进程在执行过程中拥有独立的内存单元,而多个线程共享内存,从而极大地提高了程序的运行效率。   
+- 线程不能够独立执行,必须依存在应用程序中。
 
 
 ### 3.2 线程池  
 &emsp;&emsp;线程池相对于新建线程的优点:   
-&emsp;&emsp;&emsp;&emsp;1.可以重复使用，减少多次创建线程的开销。    
+&emsp;&emsp;&emsp;&emsp;1.可以重复使用,减少多次创建线程的开销。    
 &emsp;&emsp;&emsp;&emsp;2.可以控制线程数避免无限制新建线程。    
 &emsp;&emsp;&emsp;&emsp;3.可以提高线程的管理性。    
 
-&emsp;&emsp;Executor:线程池基础接口，只声明了一个execute方法。    
+&emsp;&emsp;Executor:线程池基础接口,只声明了一个execute方法。    
 &emsp;&emsp;Executors:提供创建一些线程池方法。   
-&emsp;&emsp;&emsp;&emsp;newCachedThreadPool创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。  
-&emsp;&emsp;&emsp;&emsp;newFixedThreadPool 创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。     
-&emsp;&emsp;&emsp;&emsp;newScheduledThreadPool 创建一个定长线程池，支持定时及周期性任务执行。     
-&emsp;&emsp;&emsp;&emsp;newSingleThreadExecutor 创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。   
-&emsp;&emsp;&emsp;&emsp;newSingleThreadScheduledExecutor 创建一个容量为1的newSingleThreadExecutor线程池，若任务多余1个，将顺序执行。    
+&emsp;&emsp;&emsp;&emsp;newCachedThreadPool创建一个可缓存线程池,如果线程池长度超过处理需要,可灵活回收空闲线程,若无可回收,则新建线程。  
+&emsp;&emsp;&emsp;&emsp;newFixedThreadPool 创建一个定长线程池,可控制线程最大并发数,超出的线程会在队列中等待。     
+&emsp;&emsp;&emsp;&emsp;newScheduledThreadPool 创建一个定长线程池,支持定时及周期性任务执行。     
+&emsp;&emsp;&emsp;&emsp;newSingleThreadExecutor 创建一个单线程化的线程池,它只会用唯一的工作线程来执行任务,保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。   
+&emsp;&emsp;&emsp;&emsp;newSingleThreadScheduledExecutor 创建一个容量为1的newSingleThreadExecutor线程池,若任务多余1个,将顺序执行。    
 &emsp;&emsp;ExecutorService:创建的线程池都实现了这个接口。   
-&emsp;&emsp;CompletionService:线程池的get方法会阻塞其他get的返回，此类用户顺序获取执行完的返回。    
+&emsp;&emsp;CompletionService:线程池的get方法会阻塞其他get的返回,此类用户顺序获取执行完的返回。    
 &emsp;&emsp;Future:获取线程执行完的返回值。       
-&emsp;&emsp;Callable:功能与Runnable类似,相比于Runnable，Callable可以返回结果。 
+&emsp;&emsp;Callable:功能与Runnable类似,相比于Runnable,Callable可以返回结果。 
 
 ```java
 Callable<String> callable = new Callable<String>() {
@@ -2122,11 +2122,11 @@ Callable<String> callable = new Callable<String>() {
 |:--:|:--:|:--:|
 |参数|Runnable|Runnable、Callable|
 |返回值|没有返回值|Future<?>|
-|异常处理|只能线程内处理,外部无法处理和处理|内部外部都可以处理，方便统一处理|
+|异常处理|只能线程内处理,外部无法处理和处理|内部外部都可以处理,方便统一处理|
 |实质| \ |入参如果是Runnable最终都会转换为Callable|
 
 ### 3.3 死锁 
-&emsp;&emsp;在多线程的环境下，两个或者多个线程在分别拿到自己的锁时尝试获取对方的锁，由于必须等待对方释放锁才能获取，然而双方谁也不肯先释放自己的锁，导致双方都无法继续执行。
+&emsp;&emsp;在多线程的环境下,两个或者多个线程在分别拿到自己的锁时尝试获取对方的锁,由于必须等待对方释放锁才能获取,然而双方谁也不肯先释放自己的锁,导致双方都无法继续执行。
 ```java
 private static Object obj1 = new Object();
 private static Object obj2 = new Object();
@@ -2228,15 +2228,15 @@ Found 1 deadlock.
 ![jvisualvm](images/image11.png)
 
 ### 3.5 内存模型和线程安全   
-&emsp;&emsp;啥也别说了，上链接！！！   
+&emsp;&emsp;啥也别说了,上链接！！！   
 &emsp;&emsp;[Java内存模型(JMM)](https://blog.csdn.net/javazejian/article/details/72772461)   
 
 ### 3.6 锁
-&emsp;&emsp;悲观锁:某个线程独占一种资源，其他需要这种资源的线程全部挂起，必须等待该线程释放资源后，才能继续执行。     
+&emsp;&emsp;悲观锁:某个线程独占一种资源,其他需要这种资源的线程全部挂起,必须等待该线程释放资源后,才能继续执行。     
 
-&emsp;&emsp;乐观锁:假设执行某项操作，快完成时验证之前获取的资源是否被修改，如果被修改过则回滚重新执行，否则完成。   
+&emsp;&emsp;乐观锁:假设执行某项操作,快完成时验证之前获取的资源是否被修改,如果被修改过则回滚重新执行,否则完成。   
 
-&emsp;&emsp;CAS:(Compare and Swap)其实是对比更新。例如：一个数进行自增操作，首先读取这个变量值，称旧预期值，在计算完成后准备更新前，再次获取变量值称当前预期值，如果旧预期值与当前预期值相等，说明变量没有被其他线程修改过，则更新变量，否则说明其他线程修改过变量，则当前操作放弃更新。   
+&emsp;&emsp;CAS:(Compare and Swap)其实是对比更新。例如：一个数进行自增操作,首先读取这个变量值,称旧预期值,在计算完成后准备更新前,再次获取变量值称当前预期值,如果旧预期值与当前预期值相等,说明变量没有被其他线程修改过,则更新变量,否则说明其他线程修改过变量,则当前操作放弃更新。   
 
 &emsp;&emsp;synchronized的原理及轻量级锁、自旋锁、锁消除    
 &emsp;&emsp;[synchronized](https://blog.csdn.net/javazejian/article/details/72828483)
@@ -2283,14 +2283,14 @@ public class SingleDemo {
 ```
 
 ### 3.8 用户线程和守护线程   
-&emsp;&emsp;用户线程:用户线程是完全建立在用户空间的线程库，用户线程的创建、调度、同步和销毁全又库函数在用户空间完成，不需要内核的帮助。例如:一个Java应用总是从main()方法开始运行，mian()方法运行在一个线程内，它被称为主线程,也是一个用户线程。   
+&emsp;&emsp;用户线程:用户线程是完全建立在用户空间的线程库,用户线程的创建、调度、同步和销毁全又库函数在用户空间完成,不需要内核的帮助。例如:一个Java应用总是从main()方法开始运行,mian()方法运行在一个线程内,它被称为主线程,也是一个用户线程。   
 
-&emsp;&emsp;守护线程:与用户线程几乎一样，唯一与用户线程的区别是，用于服务用户线程，生命周期与用户线程挂钩，用户线程退出，则守护线程退出。  
+&emsp;&emsp;守护线程:与用户线程几乎一样,唯一与用户线程的区别是,用于服务用户线程,生命周期与用户线程挂钩,用户线程退出,则守护线程退出。  
 
 &emsp;&emsp;&emsp;&emsp;守护线程注意事项:   
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;必须在线程启动项前将线程设置为守护线程。    
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;守护线程中产生的线程也是守护线程。    
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;守护线程不要用于耗时操作，避免用户线程退出，守护线程没计算完就退出了。    
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;守护线程不要用于耗时操作,避免用户线程退出,守护线程没计算完就退出了。    
 
 ```java
 public class GuardianThread {
