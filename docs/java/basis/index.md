@@ -183,36 +183,41 @@
 
 ### 1.4 JVM性能监控  
   jps:显示当前用户下所以java进程的pid  
-  &emsp;&emsp;jps -q:只显示pid   
-  &emsp;&emsp;jps -m:输出传递给main方法的参数   
-  &emsp;&emsp;jps -l:输出应用程序main class的完整package名  
-  &emsp;&emsp;jps -v:输出传递给JVM的参数  
+
+  - jps -q:只显示pid   
+  - jps -m:输出传递给main方法的参数   
+  - jps -l:输出应用程序main class的完整package名  
+  - jps -v:输出传递给JVM的参数  
 
   jstack:jstack <pid\>将当前java进程的线程堆栈打印出来   
-  &emsp;&emsp;prio:线程的优先级   
-  &emsp;&emsp;tid:线程id   
-  &emsp;&emsp;nid:操作系统映射的线程id   
-  线程的状态   
-  &emsp;&emsp;New:当线程对象创建时存在的状态,此时线程不可能执行   
-  &emsp;&emsp;Runnable:当调用thread.start()后,线程变成为Runnable状态   
-  &emsp;&emsp;Running:线程正在执行   
-  &emsp;&emsp;Waiting:执行thread.join()或在锁对象调用obj.wait()等情况就会进该状态,表明线程正处于等待某个资源或条件发生来唤醒自己   
-  &emsp;&emsp;Timed_Waiting:执行Thread.sleep(long)、thread.join(long)或obj.wait(long)等就会进该状态,与Waiting的区别在于Timed_Waiting的等待有时间限制   
-  &emsp;&emsp;Blocked:如果进入同步方法或同步代码块,没有获取到锁,则会进入该状态   
-  &emsp;&emsp;Dead:线程执行完毕,或者抛出了未捕获的异常之后,会进入dead状态,表示该线程结束   
-  &emsp;&emsp;Deadlock:表示有死锁   
-  &emsp;&emsp;Waiting on condition:等待某个资源或条件发生来唤醒自己   
-  &emsp;&emsp;Blocked:阻塞   
-  &emsp;&emsp;Waiting on monitor entry:在等待获取锁   
-  &emsp;&emsp;in Object.wait():获取锁后又执行obj.wait()放弃锁  
 
-  jmap:显示某个进程内物理内存情况,
-  &emsp;&emsp;jmap -finalizerinfo<pid\>:打印正等候回收的对象的信息  
-  &emsp;&emsp;jmap -heap<pid\>:打印heap的概要信息,GC使用的算法,heap的配置及wise heap的使用情况.  
-  &emsp;&emsp;jmap -histo[:live]<pid\>:打印每个class的实例数目,内存占用,类全名信息. VM的内部类名字开头会加上前缀”*”. 如果live子参数加上后,只统计活的对象数量  
-  &emsp;&emsp;jmap -F 强迫.在pid没有相应的时候使用-dump或者-histo参数. 在这个模式下,live子参数无效    
-  &emsp;&emsp;jmap -J<参数> 传递参数给jmap启动的jvm. 
-  &emsp;&emsp;jmap -dump:[live]format=b,file=<filename>:使用二进制形式,输出jvm的heap内容到文件=. live子选项是可选的,假如指定live选项,那么只输出活的对象到文件   
+  - prio:线程的优先级   
+  - tid:线程id   
+  - nid:操作系统映射的线程id   
+
+  线程的状态   
+
+  - New:当线程对象创建时存在的状态,此时线程不可能执行   
+  - Runnable:当调用thread.start()后,线程变成为Runnable状态   
+  - Running:线程正在执行   
+  - Waiting:执行thread.join()或在锁对象调用obj.wait()等情况就会进该状态,表明线程正处于等待某个资源或条件发生来唤醒自己   
+  - Timed_Waiting:执行Thread.sleep(long)、thread.join(long)或obj.wait(long)等就会进该状态,与Waiting的区别在于Timed_Waiting的等待有时间限制   
+  - Blocked:如果进入同步方法或同步代码块,没有获取到锁,则会进入该状态   
+  - Dead:线程执行完毕,或者抛出了未捕获的异常之后,会进入dead状态,表示该线程结束   
+  - Deadlock:表示有死锁   
+  - Waiting on condition:等待某个资源或条件发生来唤醒自己   
+  - Blocked:阻塞   
+  - Waiting on monitor entry:在等待获取锁   
+  - in Object.wait():获取锁后又执行obj.wait()放弃锁  
+
+  jmap:显示某个进程内物理内存情况   
+  
+  - jmap -finalizerinfo<pid\>:打印正等候回收的对象的信息  
+  - jmap -heap<pid\>:打印heap的概要信息,GC使用的算法,heap的配置及wise heap的使用情况.  
+  - jmap -histo[:live]<pid\>:打印每个class的实例数目,内存占用,类全名信息. VM的内部类名字开头会加上前缀”*”. 如果live子参数加上后,只统计活的对象数量  
+  - jmap -F 强迫.在pid没有相应的时候使用-dump或者-histo参数. 在这个模式下,live子参数无效    
+  - jmap -J<参数> 传递参数给jmap启动的jvm. 
+  - jmap -dump:[live]format=b,file=<filename>:使用二进制形式,输出jvm的heap内容到文件=. live子选项是可选的,假如指定live选项,那么只输出活的对象到文件   
 
   jstat:  
 
@@ -223,50 +228,53 @@
   jhat:  
 
 ### 1.5 JVM编译与反编译  
-  javac:将代码编译成与平台无关的字节码文件   
-  &emsp;&emsp;-g                         生成所有调试信息  
-  &emsp;&emsp;-g:none                    不生成任何调试信息   
-  &emsp;&emsp;-g:{lines,vars,source}     只生成某些调试信息   
-  &emsp;&emsp;-nowarn                    不生成任何警告   
-  &emsp;&emsp;-verbose                   输出有关编译器正在执行的操作的消息   
-  &emsp;&emsp;-deprecation               输出使用已过时的 API 的源位置  
-  &emsp;&emsp;-classpath <路径>            指定查找用户类文件的位置   
-  &emsp;&emsp;-cp <路径>                   指定查找用户类文件的位置   
-  &emsp;&emsp;-sourcepath <路径>           指定查找输入源文件的位置   
-  &emsp;&emsp;-bootclasspath <路径>        覆盖引导类文件的位置  
-  &emsp;&emsp;-extdirs <目录>              覆盖安装的扩展目录的位置   
-  &emsp;&emsp;-endorseddirs <目录>         覆盖签名的标准路径的位置   
-  &emsp;&emsp;-d <目录>                    指定存放生成的类文件的位置   
-  &emsp;&emsp;-encoding <编码>             指定源文件使用的字符编码   
-  &emsp;&emsp;-source <版本>               提供与指定版本的源兼容性   
-  &emsp;&emsp;-target <版本>               生成特定 VM 版本的类文件  
-  &emsp;&emsp;-version                   版本信息   
-  &emsp;&emsp;-help                      输出标准选项的提要   
-  &emsp;&emsp;-X                         输出非标准选项的提要  
-  &emsp;&emsp;-J<标志>                     直接将 <标志> 传递给运行时系统   
-  &emsp;&emsp;-Werror                     遇到警告停止编译   
-  &emsp;&emsp;@<filename\>                从文件中读取选项和文件名  
-  &emsp;&emsp;示例:javac -encoding gbk -cp ../IntelliJ\ IDEA\ Project/test_one/lib/junit-4.11.jar:../IntelliJ\ IDEA\ Project/test_one/lib/log4j-1.2.17.jar @list.txt -d out/   
+  javac:将代码编译成与平台无关的字节码文件
+
+  - -g                         生成所有调试信息  
+  - -g:none                    不生成任何调试信息   
+  - -g:{lines,vars,source}     只生成某些调试信息   
+  - -nowarn                    不生成任何警告   
+  - -verbose                   输出有关编译器正在执行的操作的消息   
+  - -deprecation               输出使用已过时的 API 的源位置  
+  - -classpath <路径>            指定查找用户类文件的位置   
+  - -cp <路径>                   指定查找用户类文件的位置   
+  - -sourcepath <路径>           指定查找输入源文件的位置   
+  - -bootclasspath <路径>        覆盖引导类文件的位置  
+  - -extdirs <目录>              覆盖安装的扩展目录的位置   
+  - -endorseddirs <目录>         覆盖签名的标准路径的位置   
+  - -d <目录>                    指定存放生成的类文件的位置   
+  - -encoding <编码>             指定源文件使用的字符编码   
+  - -source <版本>               提供与指定版本的源兼容性   
+  - -target <版本>               生成特定 VM 版本的类文件  
+  - -version                   版本信息   
+  - -help                      输出标准选项的提要   
+  - -X                         输出非标准选项的提要  
+  - -J<标志>                     直接将 <标志> 传递给运行时系统   
+  - -Werror                     遇到警告停止编译   
+  - @<filename\>                从文件中读取选项和文件名  
+  - 示例:javac -encoding gbk -cp ../IntelliJ\ IDEA\ Project/test_one/lib/junit-4.11.jar:../IntelliJ\ IDEA\ Project/test_one/lib/log4j-1.2.17.jar @list.txt -d out/   
 
   javap:JDK自带的反汇编器,可以查看java编译器为我们生成的字节码  
-  &emsp;&emsp;-help 帮助  
-  &emsp;&emsp;-version 版本信息  
-  &emsp;&emsp;-verbose(-v) 输出栈大小,方法参数的个数   
-  &emsp;&emsp;-l 输出行和变量的表  
-  &emsp;&emsp;-public 只输出public方法和域  
-  &emsp;&emsp;-protected 只输出public和protected类和成员  
-  &emsp;&emsp;-package 只输出包,public和protected类和成员,这是默认的  
-  &emsp;&emsp;-private(-p) 输出所有类和成员  
-  &emsp;&emsp;-s 输出内部类型签名   
-  &emsp;&emsp;-c 输出分解后的代码,例如,类中每一个方法内,包含java字节码的指令  
-  &emsp;&emsp;-sysinfo 显示正在处理的类的系统信息(路径、大小、日期、MD5哈希)     
-  &emsp;&emsp;-constants 输出静态final常量    
-  &emsp;&emsp;-classpath <pathlist\>  指定javap用来查找类的路径。目录用：分隔   
-  &emsp;&emsp;-bootclasspath <path\> 重写引导类文件的位置   
+
+  - -help 帮助  
+  - -version 版本信息  
+  - -verbose(-v) 输出栈大小,方法参数的个数   
+  - -l 输出行和变量的表  
+  - -public 只输出public方法和域  
+  - -protected 只输出public和protected类和成员  
+  - -package 只输出包,public和protected类和成员,这是默认的  
+  - -private(-p) 输出所有类和成员  
+  - -s 输出内部类型签名   
+  - -c 输出分解后的代码,例如,类中每一个方法内,包含java字节码的指令  
+  - -sysinfo 显示正在处理的类的系统信息(路径、大小、日期、MD5哈希)     
+  - -constants 输出静态final常量    
+  - -classpath <pathlist\>  指定javap用来查找类的路径。目录用：分隔   
+  - -bootclasspath <path\> 重写引导类文件的位置   
 
   jd-gui:java 反编译可视化工具  
-  &emsp;&emsp;[https://github.com/java-decompiler/jd-gui](https://github.com/java-decompiler/jd-gui)   
-  &emsp;&emsp;下载源码,根据下面系统类型,编译成对应的可运行的程序。   
+
+  - [https://github.com/java-decompiler/jd-gui](https://github.com/java-decompiler/jd-gui)   
+  - 下载源码,根据下面系统类型,编译成对应的可运行的程序。   
 
   jdk对应的版本:   
 
