@@ -1,7 +1,7 @@
-# <center>易错</center>
+# <center>笔记</center>
 
-### java 长参数   
-&emsp;&emsp;参数长度异常
+### 1.java 长参数   
+参数长度异常
 ```java
 public void Stingstr(Object... varargs) {
     System.out.println(varargs.length);
@@ -21,3 +21,8 @@ public  void test() {
 }
 
 ``` 
+
+### 2.java 重载的方法能否根据返回类型进行区分
+![java重载方法](image/img1.jpg)
+
+### 3.OSGI

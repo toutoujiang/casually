@@ -650,3 +650,410 @@ mysql> show index from user_info;
 &emsp;&emsp;数据量少的表   
 &emsp;&emsp;经常修改的字段   
 &emsp;&emsp;分配平均且重复较多的字段  
+
+### 性能分析
+
+MySQL Query Optimizer
+
+MySQL 硬件瓶颈
+
+使用Explain分析SQL语句   
+&emsp;&emsp;介绍:   
+&emsp;&emsp;[https://dev.mysql.com/doc/refman/8.0/en/using-explain.html](https://dev.mysql.com/doc/refman/8.0/en/using-explain.html)   
+
+&emsp;&emsp;语法:   
+&emsp;&emsp;&emsp;&emsp;explain+sql语句   
+```shell
+mysql> explain select * from dept_info;
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+| id | select_type | table     | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+|  1 | SIMPLE      | dept_info | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    5 |   100.00 | NULL  |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+1 row in set, 1 warning (0.01 sec)
+```  
+
+&emsp;&emsp;作用:   
+&emsp;&emsp;&emsp;&emsp;1.显示表的读取顺序   
+&emsp;&emsp;&emsp;&emsp;2.数据读取操作的操作类型   
+&emsp;&emsp;&emsp;&emsp;3.那些索引可以被使用   
+&emsp;&emsp;&emsp;&emsp;4.那些索引被实际使用   
+&emsp;&emsp;&emsp;&emsp;5.表之间的引用   
+&emsp;&emsp;&emsp;&emsp;6.每张表有多少行被优化器查询   
+
+&emsp;&emsp;字段类型:   
+&emsp;&emsp;&emsp;&emsp;id:(表的加载顺序)      
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;1.相同(按照从上到下顺序加载)   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;2.不相同(按照id从大到小的顺序加载)   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;3.相同和不相同结合(先按照id从大到小的顺序加载,然后id相同的按照从上到下顺序加载)   
+```shell
+//id相同按照从上到下的顺序加载，先加载dept_info再加载user_info
+mysql> explain select * from dept_info left join user_info on dept_info.id = user_info.dept_id;
++----+-------------+-----------+------------+------+---------------+------------+---------+----------------------------+------+----------+-------------+
+| id | select_type | table     | partitions | type | possible_keys | key        | key_len | ref                        | rows | filtered | Extra       |
++----+-------------+-----------+------------+------+---------------+------------+---------+----------------------------+------+----------+-------------+
+|  1 | SIMPLE      | dept_info | NULL       | ALL  | NULL          | NULL       | NULL    | NULL                       |    5 |   100.00 | NULL        |
+|  1 | SIMPLE      | user_info | NULL       | ref  | idx_deptId    | idx_deptId | 5       | sql_operation.dept_info.id |    1 |   100.00 | Using where |
++----+-------------+-----------+------------+------+---------------+------------+---------+----------------------------+------+----------+-------------+
+2 rows in set, 1 warning (0.01 sec)
+
+//id不同按照从大到小的顺序加载，先加载user_info再加载dept_info
+mysql> explain select * from dept_info where id = (select dept_id from user_info where name = '赵三');
++----+-------------+-----------+------------+-------+---------------+---------+---------+-------+------+----------+-------------+
+| id | select_type | table     | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra       |
++----+-------------+-----------+------------+-------+---------------+---------+---------+-------+------+----------+-------------+
+|  1 | PRIMARY     | dept_info | NULL       | const | PRIMARY       | PRIMARY | 4       | const |    1 |   100.00 | NULL        |
+|  2 | SUBQUERY    | user_info | NULL       | ALL   | NULL          | NULL    | NULL    | NULL  |    9 |    11.11 | Using where |
++----+-------------+-----------+------------+-------+---------------+---------+---------+-------+------+----------+-------------+
+2 rows in set, 1 warning (0.01 sec)
+
+//创建第三张表user_info_cp，完全拷贝user_info
+mysql> create table user_info_cp select * from user_info;
+Query OK, 9 rows affected (0.10 sec)
+Records: 9  Duplicates: 0  Warnings: 0
+
+//
+mysql> explain select * from user_info_cp where id = (select user_info.id from user_info left join dept_info on dept_info.id = user_info.dept_id where user_info.name = '赵三');
++----+-------------+--------------+------------+--------+---------------+---------+---------+---------------------------------+------+----------+--------------------------+
+| id | select_type | table        | partitions | type   | possible_keys | key     | key_len | ref                             | rows | filtered | Extra                    |
++----+-------------+--------------+------------+--------+---------------+---------+---------+---------------------------------+------+----------+--------------------------+
+|  1 | PRIMARY     | user_info_cp | NULL       | ALL    | NULL          | NULL    | NULL    | NULL                            |    9 |    11.11 | Using where              |
+|  2 | SUBQUERY    | user_info    | NULL       | ALL    | NULL          | NULL    | NULL    | NULL                            |    9 |    11.11 | Using where              |
+|  2 | SUBQUERY    | dept_info    | NULL       | eq_ref | PRIMARY       | PRIMARY | 4       | sql_operation.user_info.dept_id |    1 |   100.00 | Using where; Using index |
++----+-------------+--------------+------------+--------+---------------+---------+---------+---------------------------------+------+----------+--------------------------+
+3 rows in set, 1 warning (0.00 sec)
+```  
+
+&emsp;&emsp;&emsp;&emsp;select_type:(查询类型)   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;simple:简单select查询   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;primary:最外层查询   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;subquery:子查询   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;derived:临时表   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;union:合并    
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;union result:合并的结果   
+
+```shell
+//simple:简单select查询 
+mysql> explain select * from user_info;
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+| id | select_type | table     | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+|  1 | SIMPLE      | user_info | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    9 |   100.00 | NULL  |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+
+//primary:最外层查询 
+//subquery:子查询 
+mysql> explain select * from dept_info where id = (select dept_id from user_info where name = '赵三');
++----+-------------+-----------+------------+-------+---------------+---------+---------+-------+------+----------+-------------+
+| id | select_type | table     | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra       |
++----+-------------+-----------+------------+-------+---------------+---------+---------+-------+------+----------+-------------+
+|  1 | PRIMARY     | dept_info | NULL       | const | PRIMARY       | PRIMARY | 4       | const |    1 |   100.00 | NULL        |
+|  2 | SUBQUERY    | user_info | NULL       | ALL   | NULL          | NULL    | NULL    | NULL  |    9 |    11.11 | Using where |
++----+-------------+-----------+------------+-------+---------------+---------+---------+-------+------+----------+-------------+
+2 rows in set, 1 warning (0.01 sec)
+
+//derived:临时表
+mysql> EXPLAIN SELECT * FROM user_info AS a1, (SELECT BENCHMARK(1000000, MD5(NOW()))) as a2;
++----+-------------+------------+------------+--------+---------------+------+---------+------+------+----------+----------------+
+| id | select_type | table      | partitions | type   | possible_keys | key  | key_len | ref  | rows | filtered | Extra          |
++----+-------------+------------+------------+--------+---------------+------+---------+------+------+----------+----------------+
+|  1 | PRIMARY     | <derived2> | NULL       | system | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL           |
+|  1 | PRIMARY     | a1         | NULL       | ALL    | NULL          | NULL | NULL    | NULL |    9 |   100.00 | NULL           |
+|  2 | DERIVED     | NULL       | NULL       | NULL   | NULL          | NULL | NULL    | NULL | NULL |     NULL | No tables used |
++----+-------------+------------+------------+--------+---------------+------+---------+------+------+----------+----------------+
+
+//union:合并
+//union result:合并的结果 
+mysql> explain select u.id,u.name,u.age,d.id,d.dept_name,d.dept_desc
+                from user_info as u
+                left join dept_info as d
+                on u.dept_id = d.id
+                union
+                select u.id,u.name,u.age,d.id,d.dept_name,d.dept_desc
+                from user_info as u
+                right join dept_info as d
+                on u.dept_id = d.id;
++----+--------------+------------+------------+--------+---------------+------------+---------+-------------------------+------+----------+-----------------+
+| id | select_type  | table      | partitions | type   | possible_keys | key        | key_len | ref                     | rows | filtered | Extra           |
++----+--------------+------------+------------+--------+---------------+------------+---------+-------------------------+------+----------+-----------------+
+|  1 | PRIMARY      | u          | NULL       | ALL    | NULL          | NULL       | NULL    | NULL                    |    9 |   100.00 | NULL            |
+|  1 | PRIMARY      | d          | NULL       | eq_ref | PRIMARY       | PRIMARY    | 4       | sql_operation.u.dept_id |    1 |   100.00 | Using where     |
+|  2 | UNION        | d          | NULL       | ALL    | NULL          | NULL       | NULL    | NULL                    |    5 |   100.00 | NULL            |
+|  2 | UNION        | u          | NULL       | ref    | idx_deptId    | idx_deptId | 5       | sql_operation.d.id      |    1 |   100.00 | Using where     |
+| NULL | UNION RESULT | <union1,2> | NULL       | ALL    | NULL          | NULL       | NULL    | NULL                    | NULL |     NULL | Using temporary |
++----+--------------+------------+------------+--------+---------------+------------+---------+-------------------------+------+----------+-----------------+
+5 rows in set, 1 warning (0.00 sec)
+```
+
+&emsp;&emsp;&emsp;&emsp;table:(表名,如果有别名就显示别名)
+
+  
+&emsp;&emsp;&emsp;&emsp;partitions:(查询匹配的记录来自哪一个分区)
+```shell
+mysql>  CREATE TABLE `trb3` (
+        `id` int(11) default NULL,
+        `name` varchar(50) default NULL,
+        `purchased` date default NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=latin1
+        PARTITION BY RANGE (YEAR(purchased)) (
+        PARTITION p0 VALUES LESS THAN (1990) ENGINE = InnoDB,
+        PARTITION p1 VALUES LESS THAN (1995) ENGINE = InnoDB,
+        PARTITION p2 VALUES LESS THAN (2000) ENGINE = InnoDB,
+        PARTITION p3 VALUES LESS THAN (2005) ENGINE = InnoDB
+        )
+
+
+mysql>  INSERT INTO trb3 VALUES
+        (1, 'desk organiser', '2003-10-15'),
+        (2, 'CD player', '1993-11-05'),
+        (3, 'TV set', '1996-03-10'),
+        (4, 'bookcase', '1982-01-10'),
+        (5, 'exercise bike', '2004-05-09'),
+        (6, 'sofa', '1987-06-05'),
+        (7, 'popcorn maker', '2001-11-22'),
+        (8, 'aquarium', '1992-08-04'),
+        (9, 'study desk', '1984-09-16'),
+        (10, 'lava lamp', '1998-12-25');
+
+mysql> explain select * from trb3;
++----+-------------+-------+-------------+------+---------------+------+---------+------+------+----------+-------+
+| id | select_type | table | partitions  | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |
++----+-------------+-------+-------------+------+---------------+------+---------+------+------+----------+-------+
+|  1 | SIMPLE      | trb3  | p0,p1,p2,p3 | ALL  | NULL          | NULL | NULL    | NULL |   10 |   100.00 | NULL  |
++----+-------------+-------+-------------+------+---------------+------+---------+------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+
+```
+
+&emsp;&emsp;&emsp;&emsp;type:(访问类型 从上到下为最优到最差)   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;system(该表只有一行,=系统表,const的特例)  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;const(至多有一行匹配)  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;eq_ref(使用有唯一性索引查找)   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;ref(非唯一性索引访问)  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;fulltext(连接使用FULLTEXT 索引执行)  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;ref_or_null(与ref类似，但包括NUL)   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;index_merge(此连接类型表示使用索引合并优化)  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;unique_subquery(这种类型取代 了以下形式的eq_ref一些 IN子查询)[官方]  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;index_subquery(这种类型取代 了以下形式的ref一些 IN子查询,与unique_subquery类似)  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;range(范围查询)  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;index(索引列查询)  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;all(全表扫描)
+
+``` shell
+//只示例几种常见的类型
+//const
+mysql> explain select * from user_info where id = 3;
++----+-------------+-----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+| id | select_type | table     | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
++----+-------------+-----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+|  1 | SIMPLE      | user_info | NULL       | const | PRIMARY       | PRIMARY | 4       | const |    1 |   100.00 | NULL  |
++----+-------------+-----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+
+//eq_ref
+mysql> explain select * from user_info u left join dept_info d on u.dept_id = d.id;
++----+-------------+-------+------------+--------+---------------+---------+---------+-------------------------+------+----------+-------------+
+| id | select_type | table | partitions | type   | possible_keys | key     | key_len | ref                     | rows | filtered | Extra       |
++----+-------------+-------+------------+--------+---------------+---------+---------+-------------------------+------+----------+-------------+
+|  1 | SIMPLE      | u     | NULL       | ALL    | NULL          | NULL    | NULL    | NULL                    |    9 |   100.00 | NULL        |
+|  1 | SIMPLE      | d     | NULL       | eq_ref | PRIMARY       | PRIMARY | 4       | sql_operation.u.dept_id |    1 |   100.00 | Using where |
++----+-------------+-------+------------+--------+---------------+---------+---------+-------------------------+------+----------+-------------+
+2 rows in set, 1 warning (0.00 sec)
+
+//ref
+mysql> explain  select * from user_info u,dept_info d where u.dept_id = d.id;
++----+-------------+-------+------------+------+---------------+------------+---------+--------------------+------+----------+-----------------------+
+| id | select_type | table | partitions | type | possible_keys | key        | key_len | ref                | rows | filtered | Extra                 |
++----+-------------+-------+------------+------+---------------+------------+---------+--------------------+------+----------+-----------------------+
+|  1 | SIMPLE      | d     | NULL       | ALL  | PRIMARY       | NULL       | NULL    | NULL               |    5 |   100.00 | NULL                  |
+|  1 | SIMPLE      | u     | NULL       | ref  | idx_deptId    | idx_deptId | 5       | sql_operation.d.id |    1 |   100.00 | Using index condition |
++----+-------------+-------+------------+------+---------------+------------+---------+--------------------+------+----------+-----------------------+
+2 rows in set, 1 warning (0.00 sec)
+
+//index_merge
+mysql> explain select * from user_info where age = 21 or dept_id = 100;
++----+-------------+-----------+------------+-------------+--------------------+--------------------+---------+------+------+----------+---------------------------------------------------+
+| id | select_type | table     | partitions | type        | possible_keys      | key                | key_len | ref  | rows | filtered | Extra                                             |
++----+-------------+-----------+------------+-------------+--------------------+--------------------+---------+------+------+----------+---------------------------------------------------+
+|  1 | SIMPLE      | user_info | NULL       | index_merge | idx_deptId,idx_age | idx_age,idx_deptId | 4,5     | NULL |    4 |   100.00 | Using sort_union(idx_age,idx_deptId); Using where |
++----+-------------+-----------+------------+-------------+--------------------+--------------------+---------+------+------+----------+---------------------------------------------------+
+1 row in set, 1 warning (0.00 sec)
+
+//range
+mysql> explain select * from user_info where age > 21;
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-----------------------+
+| id | select_type | table     | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra                 |
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-----------------------+
+|  1 | SIMPLE      | user_info | NULL       | range | idx_age       | idx_age | 4       | NULL |    5 |   100.00 | Using index condition |
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-----------------------+
+1 row in set, 1 warning (0.00 sec)
+
+//index
+mysql> explain select age from user_info;
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+| id | select_type | table     | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra       |
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+|  1 | SIMPLE      | user_info | NULL       | index | NULL          | idx_age | 66      | NULL |    9 |   100.00 | Using index |
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+1 row in set, 1 warning (0.00 sec)
+
+//all
+mysql> explain select * from user_info;
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+| id | select_type | table     | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+|  1 | SIMPLE      | user_info | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    9 |   100.00 | NULL  |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+```
+
+&emsp;&emsp;&emsp;&emsp;possible_keys:查询中可能会用到的索引，但不一定都会用到。
+```shell
+mysql> explain select id,age from user_info where id = 2 and age =22;
++----+-------------+-----------+------------+-------+-----------------+---------+---------+-------+------+----------+-------+
+| id | select_type | table     | partitions | type  | possible_keys   | key     | key_len | ref   | rows | filtered | Extra |
++----+-------------+-----------+------------+-------+-----------------+---------+---------+-------+------+----------+-------+
+|  1 | SIMPLE      | user_info | NULL       | const | PRIMARY,idx_age | PRIMARY | 4       | const |    1 |   100.00 | NULL  |
++----+-------------+-----------+------------+-------+-----------------+---------+---------+-------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+```
+
+&emsp;&emsp;&emsp;&emsp;key:实际用到的索引。(如果possible_keys为null,key不为null,一般是用到了符合索引)
+```shell
+mysql> explain select id,age from user_info;
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+| id | select_type | table     | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra       |
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+|  1 | SIMPLE      | user_info | NULL       | index | NULL          | idx_age | 66      | NULL |    9 |   100.00 | Using index |
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+1 row in set, 1 warning (0.00 sec)
+```
+
+&emsp;&emsp;&emsp;&emsp;key_len:显示索引中显示的字节,查询越精确值越大。
+
+&emsp;&emsp;&emsp;&emsp;ref:显示索引的那一列被使用，一般为常量、或者列
+```
+mysql> explain select * from user_info u left join dept_info d on u.dept_id = d.id;
++----+-------------+-------+------------+--------+---------------+---------+---------+-------------------------+------+----------+-------------+
+| id | select_type | table | partitions | type   | possible_keys | key     | key_len | ref                     | rows | filtered | Extra       |
++----+-------------+-------+------------+--------+---------------+---------+---------+-------------------------+------+----------+-------------+
+|  1 | SIMPLE      | u     | NULL       | ALL    | NULL          | NULL    | NULL    | NULL                    |    9 |   100.00 | NULL        |
+|  1 | SIMPLE      | d     | NULL       | eq_ref | PRIMARY       | PRIMARY | 4       | sql_operation.u.dept_id |    1 |   100.00 | Using where |
++----+-------------+-------+------------+--------+---------------+---------+---------+-------------------------+------+----------+-------------+
+2 rows in set, 1 warning (0.00 sec)
+```
+
+&emsp;&emsp;&emsp;&emsp;rows:显示大致的查询条数
+```
+mysql> select * from user_info;
++----+-----------+-----+-------------+---------+
+| id | name      | age | mobile      | dept_id |
++----+-----------+-----+-------------+---------+
+|  1 | 赵三      |  20 | 13000000001 |     101 |
+|  2 | 钱四      |  22 | 13000000002 |     102 |
+|  3 | 孙五      |  21 | 13000000003 |     103 |
+|  4 | 李六      |  23 | 13000000004 |     104 |
+|  5 | 周七      |  25 | 13000000005 |     102 |
+|  6 | 吴八      |  21 | 13000000006 |     103 |
+|  7 | 郑九      |  25 | 13000000007 |     102 |
+|  8 | 王十      |  24 | 13000000008 |     100 |
+| 10 | 冯十一    |   0 | 13000000009 |     100 |
++----+-----------+-----+-------------+---------+
+9 rows in set (0.00 sec)
+
+mysql> explain select * from user_info;
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+| id | select_type | table     | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+|  1 | SIMPLE      | user_info | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    9 |   100.00 | NULL  |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+```
+
+&emsp;&emsp;&emsp;&emsp;filtered:显示查询条件过滤后查询的百分比。
+```
+//name 没有建立索引
+mysql> explain select * from user_info where name = '赵三';
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------------+
+| id | select_type | table     | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------------+
+|  1 | SIMPLE      | user_info | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    9 |    11.11 | Using where |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------------+
+1 row in set, 1 warning (0.00 sec)
+```
+&emsp;&emsp;&emsp;&emsp;extra:显示查询过程中额外的信息   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;using filesort:没有按照索引顺序排列，进而使用一个外部索引排序   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;using temporary:使用了临时表   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;using index:使用了索引   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;using where:使用了where   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;using join buffer:表连接过多,一般调整配置   
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;impossible where:where后的条件不存在  
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;not exists:对left join的优化，找到匹配left join的行就不在继续查询    
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Using index condition:会先条件过滤索引，过滤完索引后找到所有符合索引条件的数据行，随后用 WHERE 子句中的其他条件去过滤这些数据行。   
+
+
+### 索引失效   
+
+- 1.对于多列的复合索引,查询的时候要么按顺序查询，要么所有字段都查询，不要跳过字段或者跳过开头字段。  
+- 2.不要在索引列上使用函数
+- 3.符合多列查询如果使用范围查询，那么范围查询后右边的全失效
+- 4.不要使用不等于(!=或<>)
+- 5.不要使用is not null或is null
+- 6.like使用%开头通配会导致索引失效
+- 7.字符串不加单引号导致索引失效
+- 8.or可能导致索引失效
+
+```shell
+//1.对于多列的复合索引,查询的时候要么按顺序查询，要么所有字段都查询，不要跳过字段或者跳过开头字段。 
+mysql> explain select id,name,mobile,dept_id from user_info where age='20';
++----+-------------+-----------+------------+------+---------------+---------+---------+-------+------+----------+-------+
+| id | select_type | table     | partitions | type | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
++----+-------------+-----------+------------+------+---------------+---------+---------+-------+------+----------+-------+
+|  1 | SIMPLE      | user_info | NULL       | ref  | idx_age       | idx_age | 4       | const |    1 |   100.00 | NULL  |
++----+-------------+-----------+------------+------+---------------+---------+---------+-------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+
+mysql> explain select id,name,mobile,dept_id from user_info where mobile = '13000000005';
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------------+
+| id | select_type | table     | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------------+
+|  1 | SIMPLE      | user_info | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    9 |    11.11 | Using where |
++----+-------------+-----------+------------+------+---------------+------+---------+------+------+----------+-------------+
+1 row in set, 1 warning (0.00 sec)
+
+
+//2.不要在索引列上使用函数
+mysql> explain select age from user_info;
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+| id | select_type | table     | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra       |
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+|  1 | SIMPLE      | user_info | NULL       | index | NULL          | idx_age | 66      | NULL |    9 |   100.00 | Using index |
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-------------+
+1 row in set, 1 warning (0.00 sec)
+
+mysql> explain select MAX(age) from user_info;
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+------------------------------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                        |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+------------------------------+
+|  1 | SIMPLE      | NULL  | NULL       | NULL | NULL          | NULL | NULL    | NULL | NULL |     NULL | Select tables optimized away |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+------------------------------+
+1 row in set, 1 warning (0.01 sec)
+
+//3.符合多列查询如果使用范围查询，那么范围查询后右边的全失效
+mysql> explain select * from user_info where age = 21 and mobile = '13000000003';
++----+-------------+-----------+------------+------+---------------+---------+---------+-------------+------+----------+-------+
+| id | select_type | table     | partitions | type | possible_keys | key     | key_len | ref         | rows | filtered | Extra |
++----+-------------+-----------+------------+------+---------------+---------+---------+-------------+------+----------+-------+
+|  1 | SIMPLE      | user_info | NULL       | ref  | idx_age       | idx_age | 66      | const,const |    1 |   100.00 | NULL  |
++----+-------------+-----------+------------+------+---------------+---------+---------+-------------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+
+mysql> explain select * from user_info where age > 20 and mobile = '13000000003';
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-----------------------+
+| id | select_type | table     | partitions | type  | possible_keys | key     | key_len | ref  | rows | filtered | Extra                 |
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-----------------------+
+|  1 | SIMPLE      | user_info | NULL       | range | idx_age       | idx_age | 4       | NULL |    7 |    11.11 | Using index condition |
++----+-------------+-----------+------------+-------+---------------+---------+---------+------+------+----------+-----------------------+
+1 row in set, 1 warning (0.00 sec)
+```

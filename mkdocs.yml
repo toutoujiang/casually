@@ -2,7 +2,7 @@
 site_name: 头头酱
 
 ###站点端口
-dev_addr: 0.0.0.0:80
+dev_addr: 0.0.0.0:11111
 
 ###配置主题
 # theme: readthedocs
@@ -10,13 +10,10 @@ dev_addr: 0.0.0.0:80
 ### 目录
 pages:
     - 目录 : index.md
-    # - web :
-    #     - 浏览器渲染流程 : web/browser/index.md
-    # - app:
-    #     - APP开发模式 : app/appdevelopmentmode/index.md
+    
     - java:
         - 基础篇: java/basis/index.md 
-        - 易错: java/error/index.md
+        - 笔记: java/notes/index.md
 
     - database:
         - MySQL: database/mysql/index.md
